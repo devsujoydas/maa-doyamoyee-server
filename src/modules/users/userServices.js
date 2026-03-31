@@ -1,0 +1,131 @@
+const buildNestedUpdateFields = require("../../utils/buildNestedUpdateFields");
+const shuffleArray = require("../../utils/shuffleArray");
+const Comment = require("../posts/commentModel");
+const Post = require("../posts/postModel");
+const User = require("./userModel");
+
+const getAllUsersService = async (req) => {
+  const id = req.user?.id;
+  if (!id) throw new Error("USER_ID_REQUIRED");
+
+  const { search, role, status } = req.query;
+
+  const filter = {};
+  if (search) {
+    filter.$or = [
+      { name: { $regex: search, $options: "i" } },
+      { username: { $regex: search, $options: "i" } },
+      { email: { $regex: search, $options: "i" } },
+    ];
+  }
+  if (role) filter.role = role;
+  if (status) filter.status = status;
+
+  const users = await User.find(filter).sort({ createdAt: -1 });
+  const usersArray = shuffleArray(users);
+  const userCounts = await User.countDocuments(filter);
+
+  return { users: usersArray, userCounts };
+};
+
+const getMyProfileService = async (req) => {
+  if (!req.user?.id) throw new Error("UNAUTHORIZE");
+
+  const user = await User.findById(req.user.id);
+
+  if (!user) throw new Error("USER_NOT_FOUND");
+
+  return user;
+};
+
+const getUsersProfileService = async (req) => {
+  if (!req.params?.userId) throw new Error("UNAUTHORIZE");
+
+  const user = await User.findById(req.params.userId);
+
+  if (!user) throw new Error("USER_NOT_FOUND");
+
+  return user;
+};
+
+
+const updateProfileService = async (req) => {
+  const { name, username, bio, profileImage, coverImage, addressInfo } =
+    req.body;
+
+  const id = req.user?.id;
+  if (!id) {throw new Error("USER_NOT_FOUND");}
+
+  const updateFields = {};
+
+  // ✅ Name
+  if (name?.trim()) {updateFields.name = name.trim();}
+
+  // ✅ Username (unique check)
+  if (username?.trim()) {
+    const exist = await User.findOne({username: username.toLowerCase(),_id: { $ne: id },});
+    if (exist) throw new Error("USERNAME_ALREADY_EXISTS");
+    updateFields.username = username.toLowerCase().trim();
+  }
+
+
+  if (bio !== undefined) {updateFields.bio = bio;}
+
+  if (profileImage) {updateFields.profileImage = profileImage;}
+  if (coverImage) {updateFields.coverImage = coverImage;}
+
+  // ✅ Address Info (nested object)
+  if (addressInfo && typeof addressInfo === "object") {
+    Object.entries(addressInfo).forEach(([key, value]) => {
+      if (value !== undefined && value !== "") {
+        updateFields[`addressInfo.${key}`] = value;
+      }
+    });
+  }
+
+  // ❌ Nothing to update
+  if (Object.keys(updateFields).length === 0) {
+    throw new Error("NO_FIELDS_TO_UPDATE");
+  }
+
+  // ✅ Update user
+  const updatedUser = await User.findByIdAndUpdate(
+    id,
+    { $set: updateFields },
+    { new: true, runValidators: true },
+  ).select("-password -refreshToken -__v");
+
+  if (!updatedUser) {
+    throw new Error("USER_NOT_FOUND");
+  }
+
+  return updatedUser;
+};
+
+const deleteProfileService = async (req) => {
+  const id = req.user.id;
+
+  const user = await User.findById(id);
+  if (!user) {
+    throw new Error("USER_NOT_FOUND");
+  }
+
+  const userDeleted = await User.deleteOne({ _id: id });
+  const postsDeleted = await Post.deleteMany({ author: id });
+  const commentsDeleted = await Comment.deleteMany({ author: id });
+
+  return {
+    userDeleted: userDeleted.deletedCount,
+    postsDeleted: postsDeleted.deletedCount,
+    commentsDeleted: commentsDeleted.deletedCount,
+  };
+};
+
+module.exports = {
+  getAllUsersService,
+  getUsersProfileService,
+
+  getMyProfileService,
+  updateProfileService,
+  deleteProfileService,
+};

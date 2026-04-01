@@ -1,4 +1,6 @@
-const verifyToken = require("../utils/verifyToken");
+const verifyToken = require("../../utils/verifyToken");
+
+ 
 
 const isVerifyUser = async (req, res, next) => {
 

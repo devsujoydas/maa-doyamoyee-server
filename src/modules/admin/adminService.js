@@ -1,6 +1,6 @@
-const User = require("../users/userModel");
-const Post = require("../posts/postModel");
-const Comment = require("../posts/commentModel");
+const User = require("../user/userModel");
+const Post = require("../post/postModel");
+const Comment = require("../post/commentModel");
 
 
 const deleteUserService = async (userId) => {

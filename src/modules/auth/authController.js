@@ -1,4 +1,4 @@
-const User = require("../users/userModel");
+const User = require("../user/userModel");
 const { signUpUserService, signInUserService, logOutUserService, refreshAccessTokenService, verifyEmailService, sendVerificationEmailService, } = require("./authServices");
 
 

@@ -1,6 +1,6 @@
 const Post = require("./postModel");
 const Comment = require("./commentModel");
-const User = require("../users/userModel");
+const User = require("../user/userModel");
 const mongoose = require("mongoose");
 
 const getPostsService = async (req) => {

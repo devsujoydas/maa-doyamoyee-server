@@ -8,8 +8,7 @@ const {
     deleteProfile, 
     getUsersProfile,
 } = require("./userController");
-const isVerifyUser = require("../../middlewares/verifyUser");
-const checkVerifiedUser = require("../../utils/checkVerifiedUser");
+const isVerifyUser = require("../../middlewares/verifyUser"); 
 
 
 

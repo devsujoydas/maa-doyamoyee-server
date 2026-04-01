@@ -1,5 +1,6 @@
-const { JWT_SECRET } = require("../configs/config");
-const jwt = require("jsonwebtoken")
+ 
+const jwt = require("jsonwebtoken");
+const { JWT_SECRET } = require("../src/configs/config");
 
 const verifyPassResetToken = (token) => { 
 

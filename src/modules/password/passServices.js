@@ -1,10 +1,10 @@
 const jwt = require("jsonwebtoken");
-const bcrypt = require("bcryptjs");
-const sendEmail = require("../../utils/sendEmail");
-const passwordResetTemplate = require("../../utils/emailTemplates/passwordResetTemplate");
-const User = require("../users/userModel");
-const { FRONTEND_URL, JWT_SECRET } = require("../../configs/config");
-const verifyPassResetToken = require("../../utils/verifyPassResetToken");
+const bcrypt = require("bcryptjs");  
+const User = require("../user/userModel");
+const { FRONTEND_URL, JWT_SECRET } = require("../../configs/config"); 
+const sendEmail = require("../../../utils/sendEmail");
+const passwordResetTemplate = require("../../../utils/emailTemplates/passwordResetTemplate");
+const verifyPassResetToken = require("../../../utils/verifyPassResetToken");
 
 const requestPasswordResetService = async (email) => {
   if (!email) throw new Error("EMAIL_REQUIRED");

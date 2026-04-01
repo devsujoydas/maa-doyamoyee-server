@@ -1,7 +1,7 @@
-const buildNestedUpdateFields = require("../../utils/buildNestedUpdateFields");
-const shuffleArray = require("../../utils/shuffleArray");
-const Comment = require("../posts/commentModel");
-const Post = require("../posts/postModel");
+ 
+const shuffleArray = require("../../../utils/shuffleArray");
+const Comment = require("../post/commentModel");
+const Post = require("../post/postModel");
 const User = require("./userModel");
 
 const getAllUsersService = async (req) => {

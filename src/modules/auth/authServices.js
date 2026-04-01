@@ -1,10 +1,10 @@
 const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
-const createTokens = require("../../utils/createTokens");
-const User = require("../users/userModel");
-const { JWT_SECRET,FRONTEND_URL, ACCESS_TOKEN_EXPIRESIN } = require("../../configs/config");
-const verifyEmailTemplate = require("../../utils/emailTemplates/verifyEmailTemplate");
-const sendEmail = require("../../utils/sendEmail");
+const jwt = require("jsonwebtoken"); 
+const User = require("../user/userModel");
+const { JWT_SECRET,FRONTEND_URL, ACCESS_TOKEN_EXPIRESIN } = require("../../configs/config");  
+const createTokens = require("../../../utils/createTokens");
+const verifyEmailTemplate = require("../../../utils/emailTemplates/verifyEmailTemplate");
+const sendEmail = require("../../../utils/sendEmail");
 
 const signUpUserService = async (req, res) => {
   const { name, email, phone, password } = req.body;

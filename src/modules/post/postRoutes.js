@@ -14,15 +14,15 @@ const {
 } = require("./postController");
 
 // POSTS
-router.get("/",  getPosts);
-router.get("/:postId",  getPost);
+router.get("/", getPosts);
+router.get("/:postId", getPost);
 
 router.post("/", isVerifyUser, createPost);
 router.put("/:postId", isVerifyUser, updatePost);
 router.delete("/:postId", isVerifyUser, deletePost);
 
 // COMMENTS
-router.get("/:postId/comments", isVerifyUser, getComments);
+router.get("/:postId/comments", getComments);
 router.post("/:postId/comments", isVerifyUser, createComment);
 router.put("/:postId/comments/:commentId", isVerifyUser, updateComment);
 router.delete("/:postId/comments/:commentId", isVerifyUser, deleteComment);

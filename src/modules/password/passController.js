@@ -20,9 +20,8 @@ const verifyResetToken = async (req, res) => {
 };
 
 const resetPassword = async (req, res) => { 
-  try {
-    const { token } = req.query;
-    const { newPassword, confirmNewPassword } = req.body;
+  try { 
+    const { newPassword, confirmNewPassword,token } = req.body;
     const message = await resetPasswordService(token, newPassword, confirmNewPassword);
     res.status(200).json({ message });
   } catch (err) {

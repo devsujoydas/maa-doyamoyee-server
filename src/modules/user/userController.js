@@ -1,3 +1,5 @@
+const { uploadImageToCloudinary } = require("../../../utils/uploadService");
+const User = require("./userModel");
 const {
   getAllUsersService,
   getMyProfileService,
@@ -115,10 +117,59 @@ const deleteProfile = async (req, res) => {
   }
 };
 
+const uploadProfilePhoto = async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ message: "No file uploaded" });
+
+    const imageUrl = await uploadImageToCloudinary(
+      req.file.buffer,
+      "profile_photos",
+    );
+
+ 
+    const updatedUser = await User.findByIdAndUpdate(
+      req.user.id,
+      { "profileImage": imageUrl },
+      { new: true },
+    ).select("-password -refreshToken -__v");
+
+    res.json(updatedUser);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Profile photo upload failed" });
+  }
+};
+
+/**
+ * Upload cover photo
+ */
+const uploadCoverPhoto = async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ message: "No file uploaded" });
+
+    const imageUrl = await uploadImageToCloudinary(
+      req.file.buffer,
+      "cover_photos",
+    ); 
+
+    const updatedUser = await User.findByIdAndUpdate(
+      req.user.id,
+      { "coverImage": imageUrl },
+      { new: true },
+    ).select("-password -refreshToken -__v");
+
+    res.json(updatedUser);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Cover photo upload failed" });
+  }
+};
+
 module.exports = {
   getUsers,
   getUsersProfile,
-
+  uploadProfilePhoto,
+  uploadCoverPhoto,
   getMyProfile,
   updateProfile,
   deleteProfile,

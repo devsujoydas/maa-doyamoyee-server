@@ -20,7 +20,7 @@ const signUpUserService = async (req, res) => {
     name,
     email,
     phone,
-    password: hashedPassword,
+    password: hashedPassword, 
   });
 
   const username = email.split("@")[0].split("+")[0];

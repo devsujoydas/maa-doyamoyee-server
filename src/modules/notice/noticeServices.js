@@ -1,6 +1,6 @@
 const Notice = require("./noticeModel");
 
-// GET ALL
+// GET ALL NOTICES
 const getNoticesService = async (req) => {
   const { search, status } = req.query;
   const filter = {};
@@ -19,13 +19,10 @@ const getNoticesService = async (req) => {
     createdAt: -1,
   });
 
-  return {
-    total: notices.length,
-    notices,
-  };
+  return notices;
 };
 
-// GET SINGLE
+// GET SINGLE NOTICE
 const getNoticeService = async (req) => {
   const notice = await Notice.findById(req.params.id);
   if (!notice) throw new Error("NOTICE_NOT_FOUND");
@@ -33,70 +30,75 @@ const getNoticeService = async (req) => {
   return notice;
 };
 
-// CREATE
+// CREATE NOTICE
 const createNoticeService = async (req) => {
-  const { title, description } = req.body;
+  const data = req.body;
+  const {
+    title,
+    description,
+    category,
+    pdfUrl,
+    isPinned,
+    status,
+    eventDate,
+    eventTime,
+    issuedBy,
+    venue,
+  } = data;
 
-  if (!title || !description) {
-    throw new Error("REQUIRED_FIELDS_MISSING");
-  }
+  if (!title || !description) throw new Error("REQUIRED_FIELDS_MISSING");
 
-  const notice = await Notice.create(req.body);
-  return notice;
+  const newNotice = await Notice.create({
+    title,
+    description,
+    category,
+    pdfUrl,
+    isPinned: isPinned || false,
+    status: status || "inactive",
+    eventDate,
+    eventTime,
+    issuedBy,
+    venue,
+  });
+
+  return newNotice;
 };
 
-// UPDATE
-const updateNoticeService = async (req) => {
-  const notice = await Notice.findById(req.params.id);
+// UPDATE NOTICE
+const updateNoticeService = async (id, data) => {
+  if (!id) throw new Error("NOTICE_NOT_FOUND");
+
+  const notice = await Notice.findById(id);
   if (!notice) throw new Error("NOTICE_NOT_FOUND");
 
-  Object.assign(notice, req.body);
-  await notice.save();
+  const updatableFields = [
+    "title",
+    "description",
+    "category",
+    "pdfUrl",
+    "isPinned",
+    "status",
+    "eventDate",
+    "eventTime",
+    "issuedBy",
+    "venue",
+  ];
+ 
 
-  return notice;
+  updatableFields.forEach((field) => {
+    if (data[field] !== undefined) notice[field] = data[field];
+  });
+
+  const updatedNotice = await notice.save();
+  return updatedNotice;
 };
 
-// DELETE
+// DELETE NOTICE
 const deleteNoticeService = async (req) => {
-  const notice = await Notice.findById(req.params.id);
+  const notice = await Notice.findByIdAndDelete(req.params.id);
   if (!notice) throw new Error("NOTICE_NOT_FOUND");
-
-  await Notice.findByIdAndDelete(req.params.id);
 
   return { message: "Notice deleted successfully" };
-};
-
-// STATUS UPDATE
-const updateNoticeStatusService = async (req) => {
-  const { status } = req.body;
-
-  const notice = await Notice.findById(req.params.id);
-  if (!notice) throw new Error("NOTICE_NOT_FOUND");
-
-  notice.status = status;
-  await notice.save();
-
-  return notice;
-};
-
-const togglePinnedService = async (req) => {
-  const notice = await Notice.findById(req.params.id);
-  if (!notice) throw new Error("NOTICE_NOT_FOUND");
-
-  notice.isPinned = !notice.isPinned;
-  await notice.save();
-
-  return notice;
-};
-
-const toggleImportantService = async (req) => {
-  const notice = await Notice.findById(req.params.id);
-  if (!notice) throw new Error("NOTICE_NOT_FOUND");
-
-  notice.isImportant = !notice.isImportant;
-  await notice.save();
-
-  return notice;
 };
 
 module.exports = {
@@ -105,7 +107,4 @@ module.exports = {
   createNoticeService,
   updateNoticeService,
   deleteNoticeService,
-  updateNoticeStatusService,
-  togglePinnedService,
-  toggleImportantService,
 };

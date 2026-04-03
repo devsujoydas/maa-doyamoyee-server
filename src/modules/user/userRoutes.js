@@ -1,28 +1,39 @@
 const express = require("express");
-const router = express.Router(); 
+const router = express.Router();
 
 const {
-    getUsers,
-    getMyProfile,
-    updateProfile,
-    deleteProfile, 
-    getUsersProfile,
+  getUsers,
+  getMyProfile,
+  updateProfile,
+  deleteProfile,
+  getUsersProfile,
+  uploadProfilePhoto,
+  uploadCoverPhoto,
 } = require("./userController");
-const isVerifyUser = require("../../middlewares/verifyUser"); 
+const isVerifyUser = require("../../middlewares/verifyUser");
+const upload = require("../../../utils/multer");
 
-
-
-
-router.get("/", isVerifyUser,getUsers);
+router.get("/", isVerifyUser, getUsers);
 router.get("/profile", isVerifyUser, getMyProfile);
 router.get("/profile/:userId", isVerifyUser, getUsersProfile);
-
 
 router.put("/profile", isVerifyUser, updateProfile);
 router.delete("/profile", isVerifyUser, deleteProfile);
 
+// Profile photo
+router.put(
+  "/profile-photo",
+  isVerifyUser,
+  upload.single("image"),
+  uploadProfilePhoto,
+);
 
- 
-
+// Cover photo
+router.put(
+  "/cover-photo",
+  isVerifyUser,
+  upload.single("image"),
+  uploadCoverPhoto,
+);
 
 module.exports = router;

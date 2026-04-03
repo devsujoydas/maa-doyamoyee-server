@@ -1,58 +1,42 @@
 const mongoose = require("mongoose");
 
-// Simple slug generator (Bangla + English safe)
 const generateSlug = (title) => {
   if (!title) return "";
   return title
     .trim()
-    .split("")
-    .map((ch) => (ch === " " ? "-" : ch))
-    .join("")
-    .replace(/-+/g, "-")
+    .replace(/\s+/g, "-") 
+    .replace(/[^\w\-ঀ-৾]+/g, "")  
     .toLowerCase();
 };
 
 const NoticeSchema = new mongoose.Schema(
   {
-    image: { type: String },
     title: { type: String, required: true, trim: true, maxlength: 200 },
-    description: { type: String, required: true },
-    
     slug: { type: String, unique: true, index: true },
-   
+    description: { type: String, required: true },
     category: {
       type: String,
-      enum: ["meeting", "event", "announcement", "general"],
+      enum: ["meeting", "event", "announcement", "general", "donation", "puja"],
       default: "general",
     },
-
-    eventDate: { type: Date },
-    eventTime: { type: String },
-
-    venue: { type: String, trim: true },
-    issuedBy: { type: String, trim: true },
-
-    contactPerson: { type: String, trim: true },
-    contactPhone: {
-      type: String,
-      match: [/^01[3-9]\d{8}$/, "Invalid Bangladeshi phone number"],
-    },
-    
-    isImportant: { type: Boolean, default: false },
+    pdfUrl: { type: String },
     isPinned: { type: Boolean, default: false },
-
     status: {
       type: String,
-      enum: ["active", "inactive", "draft"],
+      enum: ["active", "inactive"],
       default: "active",
-    }
+    },
+    eventDate: { type: Date },
+    eventTime: { type: String },
+    issuedBy: { type: String, trim: true },
+    venue: { type: String, trim: true },
   },
   { timestamps: true },
 );
 
-// 🔥 Slug auto-generate
+// Auto-generate slug
 NoticeSchema.pre("save", async function () {
-  if (!this.isModified("title")) return ;
+  if (!this.isModified("title")) return;
 
   let baseSlug = generateSlug(this.title);
   if (!baseSlug) baseSlug = `notice-${Date.now()}`;
@@ -68,7 +52,8 @@ NoticeSchema.pre("save", async function () {
   }
 
   this.slug = slug;
-
 });
+  
+const Notice = mongoose.model("Notice", NoticeSchema);
 
-module.exports = mongoose.model("Notice", NoticeSchema);
+module.exports = Notice;

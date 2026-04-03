@@ -50,7 +50,7 @@ const getUsersProfileService = async (req) => {
 
 
 const updateProfileService = async (req) => {
-  const { name, username, bio, profileImage, coverImage, addressInfo } =
+  const { name, username, bio, addressInfo,contactDetails } =
     req.body;
 
   const id = req.user?.id;
@@ -71,14 +71,18 @@ const updateProfileService = async (req) => {
 
   if (bio !== undefined) {updateFields.bio = bio;}
 
-  if (profileImage) {updateFields.profileImage = profileImage;}
-  if (coverImage) {updateFields.coverImage = coverImage;}
-
   // ✅ Address Info (nested object)
   if (addressInfo && typeof addressInfo === "object") {
     Object.entries(addressInfo).forEach(([key, value]) => {
       if (value !== undefined && value !== "") {
         updateFields[`addressInfo.${key}`] = value;
+      }
+    });
+  }
+  if (contactDetails && typeof contactDetails === "object") {
+    Object.entries(contactDetails).forEach(([key, value]) => {
+      if (value !== undefined && value !== "") {
+        updateFields[`contactDetails.${key}`] = value;
       }
     });
   }

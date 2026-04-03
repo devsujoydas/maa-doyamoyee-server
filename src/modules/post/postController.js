@@ -37,12 +37,15 @@ const getPost = async (req, res) => {
   }
 };
 
+// POST /posts
 const createPost = async (req, res) => {
   try {
     const post = await createPostService(req);
-    res.status(201).json({ message: "Post created successfully", post });
+    // Send post directly for frontend convenience
+    res.status(201).json(post);
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    console.error("Create post error:", err);
+    res.status(400).json({ message: err.message || "Failed to create post" });
   }
 };
 

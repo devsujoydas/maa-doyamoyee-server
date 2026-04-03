@@ -2,6 +2,7 @@ const Post = require("./postModel");
 const Comment = require("./commentModel");
 const User = require("../user/userModel");
 const mongoose = require("mongoose");
+const { uploadImageToCloudinary } = require("../../../utils/uploadService");
 
 const getPostsService = async (req) => {
   const { author, search, status } = req.query;
@@ -57,7 +58,7 @@ const getPostsService = async (req) => {
 const getPostService = async (req) => {
   const post = await Post.findById(req.params.postId).populate(
     "author",
-    "name username profileImage",
+    "name username profileImage contactDetails bio",
   );
 
   if (!post) throw new Error("POST_NOT_FOUND");
@@ -75,18 +76,33 @@ const getPostService = async (req) => {
 };
 
 const createPostService = async (req) => {
-  const { title, content, category, postImg } = req.body;
-  if (!title || !content || !category) throw new Error("CONTENT_REQUIRED");
+  const { title, content, category } = req.body;
+
+  if (!title || !content || !category) {
+    throw new Error("All fields are required");
+  }
+
+  let imageUrl = "";
+
+  if (req.file) {
+    try {
+      imageUrl = await uploadImageToCloudinary(req.file.buffer, "blog_photos");
+    } catch (err) {
+      console.error("Cloudinary upload error:", err);
+      throw new Error("Image upload failed");
+    }
+  }
 
   const post = await Post.create({
     title,
     content,
     category,
-    postImg: postImg || "",
+    postImg: imageUrl,
     author: req.user.id,
   });
 
   await post.populate("author", "name username profileImage");
+
   return post;
 };
 
@@ -128,12 +144,7 @@ const getCommentsService = async (req) => {
     .populate("author", "name username profileImage")
     .sort({ createdAt: -1 });
 
-  const commentCount = await Comment.countDocuments({ post: postId });
-
-  return {
-    commentCount,
-    comments,
-  };
+  return comments
 };
 
 const createCommentService = async (req) => {
@@ -147,7 +158,8 @@ const createCommentService = async (req) => {
   });
 
   await comment.populate("author", "name username profileImage");
-  return { message: "Comment created successfully", comment };
+
+  return comment;
 };
 
 const updateCommentService = async (req) => {

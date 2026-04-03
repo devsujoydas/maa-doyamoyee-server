@@ -4,10 +4,9 @@ const {
   createNoticeService,
   updateNoticeService,
   deleteNoticeService,
-  updateNoticeStatusService,
 } = require("./noticeServices");
 
-// GET ALL
+// GET ALL NOTICES
 const getNotices = async (req, res) => {
   try {
     const data = await getNoticesService(req);
@@ -17,7 +16,7 @@ const getNotices = async (req, res) => {
   }
 };
 
-// GET SINGLE
+// GET SINGLE NOTICE
 const getNotice = async (req, res) => {
   try {
     const notice = await getNoticeService(req);
@@ -30,7 +29,7 @@ const getNotice = async (req, res) => {
   }
 };
 
-// CREATE
+// CREATE NOTICE
 const createNotice = async (req, res) => {
   try {
     const notice = await createNoticeService(req);
@@ -46,23 +45,24 @@ const createNotice = async (req, res) => {
   }
 };
 
-// UPDATE
+// UPDATE NOTICE
 const updateNotice = async (req, res) => {
   try {
-    const notice = await updateNoticeService(req);
+    const { id } = req.params;
+    const updatedNotice = await updateNoticeService(id, req.body);
     res.status(200).json({
       message: "Notice updated successfully",
-      notice,
+      notice: updatedNotice,
     });
   } catch (err) {
     if (err.message === "NOTICE_NOT_FOUND") {
       return res.status(404).json({ message: "Notice not found" });
     }
-    res.status(500).json({ message: err.message });
+    res.status(400).json({ message: err.message });
   }
 };
 
-// DELETE
+// DELETE NOTICE
 const deleteNotice = async (req, res) => {
   try {
     const result = await deleteNoticeService(req);
@@ -75,56 +75,6 @@ const deleteNotice = async (req, res) => {
   }
 };
 
-// STATUS UPDATE
-const updateNoticeStatus = async (req, res) => {
-  try {
-    const notice = await updateNoticeStatusService(req);
-    res.status(200).json({
-      message: "Status updated successfully",
-      notice,
-    });
-  } catch (err) {
-    if (err.message === "NOTICE_NOT_FOUND") {
-      return res.status(404).json({ message: "Notice not found" });
-    }
-    res.status(500).json({ message: err.message });
-  }
-};
-
-
-
-
-// TOGGLE PINNED
-const togglePinned = async (req, res) => {
-  try {
-    const notice = await togglePinnedService(req);
-    res.status(200).json({
-      message: `Pinned ${notice.isPinned ? "enabled" : "disabled"}`,
-      notice,
-    });
-  } catch (err) {
-    if (err.message === "NOTICE_NOT_FOUND") {
-      return res.status(404).json({ message: "Notice not found" });
-    }
-    res.status(500).json({ message: err.message });
-  }
-};
-
-// TOGGLE IMPORTANT
-const toggleImportant = async (req, res) => {
-  try {
-    const notice = await toggleImportantService(req);
-    res.status(200).json({
-      message: `Important ${notice.isImportant ? "enabled" : "disabled"}`,
-      notice,
-    });
-  } catch (err) {
-    if (err.message === "NOTICE_NOT_FOUND") {
-      return res.status(404).json({ message: "Notice not found" });
-    }
-    res.status(500).json({ message: err.message });
-  }
-};
 
 
 module.exports = {
@@ -133,7 +83,4 @@ module.exports = {
   createNotice,
   updateNotice,
   deleteNotice,
-  updateNoticeStatus,
-  togglePinned,
-  toggleImportant,
 };

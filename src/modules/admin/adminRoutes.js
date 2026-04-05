@@ -19,4 +19,4 @@ router.delete("/comment/:commentId", isAdmin, deleteComment);
 
 router.patch("/post/:postId/status", isAdmin, updatePostStatus);
 
-module.exports = router; 
+module.exports = router;

@@ -1,20 +1,26 @@
 const User = require("../user/userModel");
-const { signUpUserService, signInUserService, logOutUserService, refreshAccessTokenService, verifyEmailService, sendVerificationEmailService, } = require("./authServices");
+const {
+  signUpUserService,
+  signInUserService,
+  logOutUserService,
+  refreshAccessTokenService,
+  verifyEmailService,
+  sendVerificationEmailService,
+} = require("./authServices");
 
-
-
-const signUpUser = async (req, res, next) => {  
+const signUpUser = async (req, res, next) => {
   try {
     const result = await signUpUserService(req, res, next);
     res.status(201).json(result);
   } catch (error) {
     if (error.message === "USER_ALREADY_EXIST") {
-      return res.status(409).json({ message: "User already exists with this emaill" });
+      return res
+        .status(409)
+        .json({ message: "User already exists with this emaill" });
     }
     res.status(500).send({ message: error.message });
   }
 };
-
 
 const signInUser = async (req, res) => {
   try {
@@ -24,7 +30,6 @@ const signInUser = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-
 
 const googleLogin = async (req, res) => {
   try {
@@ -55,7 +60,6 @@ const googleLogin = async (req, res) => {
   }
 };
 
-
 const logOutUser = async (req, res) => {
   try {
     await logOutUserService(req.cookies?.refreshToken);
@@ -67,7 +71,6 @@ const logOutUser = async (req, res) => {
     });
 
     return res.status(200).json({ message: "Logged out successfully" });
-
   } catch (error) {
     if (error.message === "NO_REFRESH_TOKEN") {
       return res.status(400).json({ message: "No refresh token found" });
@@ -85,7 +88,6 @@ const refreshAccessToken = (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-
 const sendVerificationEmail = async (req, res, next) => {
   try {
     const message = await sendVerificationEmailService(req.user?.id);
@@ -95,6 +97,7 @@ const sendVerificationEmail = async (req, res, next) => {
   }
 };
 
+// Verify email controller
 const verifyEmail = async (req, res, next) => {
   try {
     const token = req.query.token;
@@ -111,10 +114,6 @@ module.exports = {
   googleLogin,
   logOutUser,
   refreshAccessToken,
-   sendVerificationEmail,
+  sendVerificationEmail,
   verifyEmail,
 };
-
-
-
-

@@ -43,9 +43,8 @@ const verifyResetTokenService = async (req) => {
 };
 
 const resetPasswordService = async (token, newPassword, confirmNewPassword) => {
-  
   console.log(token, newPassword, confirmNewPassword);
-  
+
   if (!token) throw new Error("TOKEN_REQUIRED");
   if (
     !newPassword ||
@@ -65,8 +64,51 @@ const resetPasswordService = async (token, newPassword, confirmNewPassword) => {
   return "Password reset successful";
 };
 
+const changePasswordService = async (req) => {
+  const { currentPassword, newPassword, confirmNewPassword } = req.body;
+
+  // ✅ Trim all inputs
+  const current = currentPassword?.trim();
+  const np = newPassword?.trim();
+  const confirm = confirmNewPassword?.trim();
+
+  if (!current || !np || !confirm) {
+    throw new Error("ALL_FIELDS_REQUIRED");
+  }
+
+  if (np !== confirm) {
+    throw new Error("PASSWORD_MISMATCH");
+  }
+
+  if (np.length < 8) {
+    throw new Error("PASSWORD_TOO_SHORT");
+  }
+
+  const user = await User.findById(req.user.id);
+  if (!user) throw new Error("USER_NOT_FOUND");
+
+  // Check current password
+  const isMatch = await bcrypt.compare(current, user.password);
+  if (!isMatch) {
+    throw new Error("CURRENT_PASSWORD_INCORRECT");
+  }
+
+  // Prevent reuse
+  const isSame = await bcrypt.compare(np, user.password);
+  if (isSame) {
+    throw new Error("NEW_PASSWORD_MUST_BE_DIFFERENT");
+  }
+
+  // Hash & save
+  user.password = await bcrypt.hash(np, 10);
+  await user.save();
+
+  return "Password updated successfully";
+};
+
 module.exports = {
   requestPasswordResetService,
   verifyResetTokenService,
   resetPasswordService,
+  changePasswordService,
 };

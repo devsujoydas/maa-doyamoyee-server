@@ -12,7 +12,7 @@ const {
 const isVerifyUser = require("../../middlewares/verifyUser");
 
 router.post("/send-verification", isVerifyUser, sendVerificationEmail);
-router.get("/verify-email", isVerifyUser, verifyEmail);
+router.get("/verify-email", verifyEmail);
 
 router.post("/signup", signUpUser);
 router.post("/signin", signInUser);

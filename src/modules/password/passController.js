@@ -1,5 +1,9 @@
-const { requestPasswordResetService, verifyResetTokenService, resetPasswordService } = require("./passServices");
-
+const {
+  requestPasswordResetService,
+  verifyResetTokenService,
+  resetPasswordService,
+  changePasswordService,
+} = require("./passServices");
 
 const requestPasswordReset = async (req, res) => {
   try {
@@ -19,19 +23,33 @@ const verifyResetToken = async (req, res) => {
   }
 };
 
-const resetPassword = async (req, res) => { 
-  try { 
-    const { newPassword, confirmNewPassword,token } = req.body;
-    const message = await resetPasswordService(token, newPassword, confirmNewPassword);
+const resetPassword = async (req, res) => {
+  try {
+    const { newPassword, confirmNewPassword, token } = req.body;
+    const message = await resetPasswordService(
+      token,
+      newPassword,
+      confirmNewPassword,
+    );
     res.status(200).json({ message });
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
 };
 
+const changePassword = async (req, res) => {
+  try {
+    
+    const message = await changePasswordService(req);
+    res.status(200).json({ message });
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+};
 
 module.exports = {
   requestPasswordReset,
   verifyResetToken,
-  resetPassword
-}
+  resetPassword,
+  changePassword,
+};

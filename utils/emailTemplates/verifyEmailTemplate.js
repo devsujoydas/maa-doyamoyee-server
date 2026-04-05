@@ -24,7 +24,7 @@ const verifyEmailTemplate = (verifyUrl) => `
                 Verify Your Email
               </p>
             </td>
-          </tr>
+          </tr> 
 
           <!-- Body -->
           <tr>

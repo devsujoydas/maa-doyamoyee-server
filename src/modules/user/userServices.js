@@ -8,8 +8,6 @@ const Post = require("../post/postModel");
 const User = require("./userModel");
 const jwt = require("jsonwebtoken");
 
-
-
 const getAllUsersService = async (req) => {
   const id = req.user?.id;
   if (!id) throw new Error("USER_ID_REQUIRED");
@@ -108,7 +106,10 @@ const updateProfileService = async (req) => {
   const updatedUser = await User.findByIdAndUpdate(
     id,
     { $set: updateFields },
-    { new: true, runValidators: true },
+    {
+      returnDocument: "after",
+      runValidators: true,
+    },
   ).select("-password -refreshToken -__v");
 
   if (!updatedUser) {
@@ -142,8 +143,7 @@ const requestVerifyUserService = async (email) => {
 
   const user = await User.findOne({ email }).select("_id email");
 
-  const message =
-    "Email Verification link has been sent to your email.";
+  const message = "Email Verification link has been sent to your email.";
 
   if (!user) return message;
 

@@ -99,48 +99,37 @@ const sendVerificationEmailService = async (userId) => {
   const user = await User.findById(userId);
   if (!user) throw new Error("USER_NOT_FOUND");
 
-  if (user.isVerified) {
-    return "Email already verified";
-  }
+  if (user.isVerified) return "Email already verified";
 
-  const token = jwt.sign(
-    { id: user._id, type: "verify" },
-    JWT_SECRET,
-    { expiresIn: "10m" }
-  );
+  // Create JWT token for email verification
+  const token = jwt.sign({ id: user._id, type: "verify" }, JWT_SECRET, {
+    expiresIn: "10m",
+  });
 
-  const verifyUrl = `${FRONTEND_URL}/verify-email?token=${token}`;
+  const verifyUrl = `${FRONTEND_URL}/profile?token=${token}`;
 
-  await sendEmail(
-    user.email,
-    "Verify Your Email - Maa Doyamoyee",
-    verifyEmailTemplate(verifyUrl)
-  );
+  // Send email
+  await sendEmail(user.email, "Verify Your Email", verifyEmailTemplate(verifyUrl));
 
   return "Verification email sent";
 };
-
-// 🔹 Verify email
+ 
 const verifyEmailService = async (token) => {
   if (!token) throw new Error("TOKEN_REQUIRED");
 
   let decoded;
   try {
     decoded = jwt.verify(token, JWT_SECRET);
-  } catch (err) {
+  } catch {
     throw new Error("INVALID_OR_EXPIRED_TOKEN");
   }
 
-  if (decoded.type !== "verify") {
-    throw new Error("INVALID_TOKEN_TYPE");
-  }
+  if (decoded.type !== "verify") throw new Error("INVALID_TOKEN_TYPE");
 
   const user = await User.findById(decoded.id);
   if (!user) throw new Error("USER_NOT_FOUND");
 
-  if (user.isVerified) {
-    return "Email already verified";
-  }
+  if (user.isVerified) return "Email already verified";
 
   user.isVerified = true;
   await user.save();

@@ -4,9 +4,11 @@ const {
   requestPasswordReset,
   verifyResetToken,
   resetPassword,
+  changePassword,
 } = require("./passController");
 
 const rateLimit = require("express-rate-limit");
+const isVerifyUser = require("../../middlewares/verifyUser");
 
 const resetLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -18,4 +20,5 @@ router.post("/request-reset", resetLimiter, requestPasswordReset);
 router.get("/verify-reset-token", verifyResetToken);
 router.post("/reset-password", resetPassword);
 
+router.put("/change-password", isVerifyUser, changePassword);
 module.exports = router;

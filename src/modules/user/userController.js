@@ -6,6 +6,8 @@ const {
   updateProfileService,
   deleteProfileService,
   getUsersProfileService,
+  requestVerifyUserService,
+  verifyUserTokenService,
 } = require("./userServices");
 
 const getUsers = async (req, res) => {
@@ -119,49 +121,88 @@ const deleteProfile = async (req, res) => {
 
 const uploadProfilePhoto = async (req, res) => {
   try {
-    if (!req.file) return res.status(400).json({ message: "No file uploaded" });
+    if (!req.file) {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
 
     const imageUrl = await uploadImageToCloudinary(
       req.file.buffer,
-      "profile_photos",
+      "profile_photos"
     );
 
- 
-    const updatedUser = await User.findByIdAndUpdate(
-      req.user.id,
-      { "profileImage": imageUrl },
-      { new: true },
-    ).select("-password -refreshToken -__v");
+    const user = await User.findById(req.user.id).select(
+      "-password -refreshToken -__v"
+    );
 
-    res.json(updatedUser);
+    if (!user) {
+      return res.status(404).json({ message: "User Not Found" });
+    }
+
+    user.profileImage = imageUrl;
+
+    await user.save();
+
+    res.status(200).json({
+      message: "Profile photo updated successfully",
+      user,
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Profile photo upload failed" });
   }
 };
 
-/**
- * Upload cover photo
- */
+
 const uploadCoverPhoto = async (req, res) => {
   try {
-    if (!req.file) return res.status(400).json({ message: "No file uploaded" });
+    if (!req.file) {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
 
     const imageUrl = await uploadImageToCloudinary(
       req.file.buffer,
-      "cover_photos",
-    ); 
+      "cover_photos"
+    );
 
-    const updatedUser = await User.findByIdAndUpdate(
-      req.user.id,
-      { "coverImage": imageUrl },
-      { new: true },
-    ).select("-password -refreshToken -__v");
+    const user = await User.findById(req.user.id).select(
+      "-password -refreshToken -__v"
+    );
 
-    res.json(updatedUser);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    user.coverImage = imageUrl;
+
+    await user.save();
+
+    res.status(200).json({
+      message: "Cover photo updated successfully",
+      user,
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Cover photo upload failed" });
+  }
+};
+
+const requestVerifyUserController = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const message = await requestVerifyUserService(email);
+    res.status(200).json({ success: true, message });
+  } catch (err) {
+    res.status(400).json({ success: false, message: err.message });
+  }
+};
+
+const verifyUserTokenController = async (req, res) => {
+  try {
+    const { token } = req.query;
+    const message = await verifyUserTokenService(token);
+    res.status(200).json({ success: true, message });
+  } catch (err) {
+    res.status(400).json({ success: false, message: err.message });
   }
 };
 
@@ -173,4 +214,7 @@ module.exports = {
   getMyProfile,
   updateProfile,
   deleteProfile,
+
+  requestVerifyUserController,
+   verifyUserTokenController
 };

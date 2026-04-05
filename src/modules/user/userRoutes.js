@@ -9,6 +9,8 @@ const {
   getUsersProfile,
   uploadProfilePhoto,
   uploadCoverPhoto,
+  requestVerifyUserController,
+  verifyUserTokenController,
 } = require("./userController");
 const isVerifyUser = require("../../middlewares/verifyUser");
 const upload = require("../../../utils/multer");
@@ -35,5 +37,13 @@ router.put(
   upload.single("image"),
   uploadCoverPhoto,
 );
+
+
+
+router.post("/request", requestVerifyUserController);
+
+// GET → verify token from link
+router.get("/verify", verifyUserTokenController);
+
 
 module.exports = router;

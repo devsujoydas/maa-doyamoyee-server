@@ -1,8 +1,14 @@
- 
+const verifyEmailTemplate = require("../../../utils/emailTemplates/verifyEmailTemplate");
+const sendEmail = require("../../../utils/sendEmail");
 const shuffleArray = require("../../../utils/shuffleArray");
+const verifyPassResetToken = require("../../../utils/verifyPassResetToken");
+const { FRONTEND_URL, JWT_SECRET } = require("../../configs/config");
 const Comment = require("../post/commentModel");
 const Post = require("../post/postModel");
 const User = require("./userModel");
+const jwt = require("jsonwebtoken");
+
+
 
 const getAllUsersService = async (req) => {
   const id = req.user?.id;
@@ -48,28 +54,34 @@ const getUsersProfileService = async (req) => {
   return user;
 };
 
-
 const updateProfileService = async (req) => {
-  const { name, username, bio, addressInfo,contactDetails } =
-    req.body;
+  const { name, username, bio, addressInfo, contactDetails } = req.body;
 
   const id = req.user?.id;
-  if (!id) {throw new Error("USER_NOT_FOUND");}
+  if (!id) {
+    throw new Error("USER_NOT_FOUND");
+  }
 
   const updateFields = {};
 
   // ✅ Name
-  if (name?.trim()) {updateFields.name = name.trim();}
+  if (name?.trim()) {
+    updateFields.name = name.trim();
+  }
 
   // ✅ Username (unique check)
   if (username?.trim()) {
-    const exist = await User.findOne({username: username.toLowerCase(),_id: { $ne: id },});
+    const exist = await User.findOne({
+      username: username.toLowerCase(),
+      _id: { $ne: id },
+    });
     if (exist) throw new Error("USERNAME_ALREADY_EXISTS");
     updateFields.username = username.toLowerCase().trim();
   }
 
-
-  if (bio !== undefined) {updateFields.bio = bio;}
+  if (bio !== undefined) {
+    updateFields.bio = bio;
+  }
 
   // ✅ Address Info (nested object)
   if (addressInfo && typeof addressInfo === "object") {
@@ -125,6 +137,57 @@ const deleteProfileService = async (req) => {
   };
 };
 
+const requestVerifyUserService = async (email) => {
+  if (!email) throw new Error("EMAIL_REQUIRED");
+
+  const user = await User.findOne({ email }).select("_id email");
+
+  const message =
+    "Email Verification link has been sent to your email.";
+
+  if (!user) return message;
+
+  const token = jwt.sign({ id: user._id, type: "verify" }, JWT_SECRET, {
+    expiresIn: "24h",
+  });
+
+  const verifyUrl = `${FRONTEND_URL}/verify-email?token=${token}`;
+
+  await sendEmail(
+    email,
+    "🔐 Verify Your Email - Maa Doyamoyee",
+    verifyEmailTemplate(verifyUrl),
+  );
+
+  return message;
+};
+
+/**
+ * Verify user token
+ */
+const verifyUserTokenService = async (token) => {
+  if (!token) throw new Error("TOKEN_REQUIRED");
+
+  let payload;
+  try {
+    payload = jwt.verify(token, JWT_SECRET);
+  } catch (err) {
+    throw new Error("INVALID_OR_EXPIRED_TOKEN");
+  }
+
+  if (payload.type !== "verify") throw new Error("INVALID_TOKEN_TYPE");
+
+  const user = await User.findById(payload.id);
+  if (!user) throw new Error("USER_NOT_FOUND");
+
+  if (user.isVerified) return "Your email is already verified.";
+
+  user.isVerified = true;
+  await user.save();
+
+  return "Your email has been successfully verified!";
+};
+
 module.exports = {
   getAllUsersService,
   getUsersProfileService,
@@ -132,4 +195,7 @@ module.exports = {
   getMyProfileService,
   updateProfileService,
   deleteProfileService,
+
+  requestVerifyUserService,
+  verifyUserTokenService,
 };

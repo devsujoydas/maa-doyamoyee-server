@@ -15,9 +15,9 @@ const {
 const isVerifyUser = require("../../middlewares/verifyUser");
 const upload = require("../../../utils/multer");
 
-router.get("/", isVerifyUser, getUsers);
+router.get("/", getUsers);
 router.get("/profile", isVerifyUser, getMyProfile);
-router.get("/profile/:userId", isVerifyUser, getUsersProfile);
+router.get("/profile/:userId", getUsersProfile);
 
 router.put("/profile", isVerifyUser, updateProfile);
 router.delete("/profile", isVerifyUser, deleteProfile);

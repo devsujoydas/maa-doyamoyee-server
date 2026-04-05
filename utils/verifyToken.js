@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
- 
+
 const User = require("../src/modules/user/userModel");
 const { JWT_SECRET } = require("../src/configs/config");
 
@@ -14,7 +14,6 @@ const verifyToken = async (req) => {
   try {
     const token = authHeader.split(" ")[1];
     const decoded = jwt.verify(token, JWT_SECRET);
-
     const user = await User.findById(decoded.id).select("_id email");
 
     if (!user) {

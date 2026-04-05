@@ -9,9 +9,7 @@ const User = require("./userModel");
 const jwt = require("jsonwebtoken");
 
 const getAllUsersService = async (req) => {
-  const id = req.user?.id;
-  if (!id) throw new Error("USER_ID_REQUIRED");
-
+ 
   const { search, role, status } = req.query;
 
   const filter = {};
@@ -25,11 +23,9 @@ const getAllUsersService = async (req) => {
   if (role) filter.role = role;
   if (status) filter.status = status;
 
-  const users = await User.find(filter).sort({ createdAt: -1 });
-  const usersArray = shuffleArray(users);
-  const userCounts = await User.countDocuments(filter);
+  const users = await User.find(filter).select("-password -refreshToken");
 
-  return { users: usersArray, userCounts };
+  return  users ;
 };
 
 const getMyProfileService = async (req) => {
@@ -45,7 +41,7 @@ const getMyProfileService = async (req) => {
 const getUsersProfileService = async (req) => {
   if (!req.params?.userId) throw new Error("UNAUTHORIZE");
 
-  const user = await User.findById(req.params.userId);
+  const user = await User.findById(req.params.userId).select("-refreshToken -password");
 
   if (!user) throw new Error("USER_NOT_FOUND");
 
@@ -53,7 +49,7 @@ const getUsersProfileService = async (req) => {
 };
 
 const updateProfileService = async (req) => {
-  const { name, username, bio, addressInfo, contactDetails } = req.body;
+  const { name, username, bio,phone, addressInfo, contactDetails } = req.body;
 
   const id = req.user?.id;
   if (!id) {
@@ -79,6 +75,9 @@ const updateProfileService = async (req) => {
 
   if (bio !== undefined) {
     updateFields.bio = bio;
+  }
+  if (phone !== undefined) {
+    updateFields.phone = phone;
   }
 
   // ✅ Address Info (nested object)

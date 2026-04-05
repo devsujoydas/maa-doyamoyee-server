@@ -8,6 +8,7 @@ const {
   createCommentService,
   updateCommentService,
   deleteCommentService,
+  toggleReactService,
 } = require("./postServices");
 
 const getPosts = async (req, res) => {
@@ -71,6 +72,10 @@ const deletePost = async (req, res) => {
   }
 };
 
+
+
+
+
 const getComments = async (req, res) => {
   try {
     const comments = await getCommentsService(req);
@@ -109,6 +114,27 @@ const deleteComment = async (req, res) => {
   }
 };
 
+
+const toggleReact = async (req, res) => {
+  try {
+    
+
+    const result = await toggleReactService(req);
+
+    res.status(200).json({
+      success: true,
+      message: result.message,
+      data: result.post,
+    });
+  } catch (error) {
+    console.error("Toggle React Error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to toggle react",
+    });
+  }
+};
+
 module.exports = {
   getPosts,
   getPost,
@@ -119,4 +145,5 @@ module.exports = {
   createComment,
   updateComment,
   deleteComment,
+  toggleReact,
 };

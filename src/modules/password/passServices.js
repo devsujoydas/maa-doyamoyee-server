@@ -43,8 +43,7 @@ const verifyResetTokenService = async (req) => {
 };
 
 const resetPasswordService = async (token, newPassword, confirmNewPassword) => {
-  console.log(token, newPassword, confirmNewPassword);
-
+ 
   if (!token) throw new Error("TOKEN_REQUIRED");
   if (
     !newPassword ||

@@ -49,10 +49,8 @@ const getPostsService = async (req) => {
     }),
   );
 
-  return {
-    total: postsWithCommentCount.length,
-    posts: postsWithCommentCount,
-  };
+  return postsWithCommentCount
+
 };
 
 const getPostService = async (req) => {
@@ -144,7 +142,7 @@ const getCommentsService = async (req) => {
     .populate("author", "name username profileImage")
     .sort({ createdAt: -1 });
 
-  return comments
+  return comments;
 };
 
 const createCommentService = async (req) => {
@@ -189,6 +187,39 @@ const deleteCommentService = async (req) => {
   return { message: "Comment deleted successfully" };
 };
 
+const toggleReactService = async (req) => {
+  const userId = req.user.id;
+  const { postId } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(postId)) {
+    throw new Error("Invalid Post ID");
+  }
+
+  const post = await Post.findById(postId);
+
+  if (!post) throw new Error("Post not found");
+
+  const alreadyReacted = post.reacts.includes(userId);
+
+  let updatedPost;
+
+  if (alreadyReacted) {
+    updatedPost = await Post.findByIdAndUpdate(
+      postId,
+      { $pull: { reacts: userId } },
+      { returnDocument: "after" }, // <-- updated here
+    );
+    return { message: "React removed", post: updatedPost };
+  } else {
+    updatedPost = await Post.findByIdAndUpdate(
+      postId,
+      { $addToSet: { reacts: userId } },
+      { returnDocument: "after" }, // <-- updated here
+    );
+    return { message: "React added", post: updatedPost };
+  }
+};
+
 module.exports = {
   getPostsService,
   getPostService,
@@ -199,4 +230,5 @@ module.exports = {
   createCommentService,
   updateCommentService,
   deleteCommentService,
+  toggleReactService,
 };

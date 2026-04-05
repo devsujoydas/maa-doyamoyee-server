@@ -12,8 +12,8 @@ const {
 
 const getUsers = async (req, res) => {
   try {
-    const { users, userCounts } = await getAllUsersService(req);
-    res.json({ userCounts, users });
+    const users = await getAllUsersService(req);
+    res.json(users);
   } catch (error) {
     console.error(error);
     res.status(500).send("Server error");
@@ -40,10 +40,8 @@ const getUsersProfile = async (req, res) => {
     const user = await getUsersProfileService(req);
 
     if (!user) {
-      // extra safety check
       return res.status(404).json({ message: "User not found" });
     }
-
     res.status(200).json({ user });
   } catch (error) {
     console.error("Error in getUsersProfile:", error);
@@ -127,11 +125,11 @@ const uploadProfilePhoto = async (req, res) => {
 
     const imageUrl = await uploadImageToCloudinary(
       req.file.buffer,
-      "profile_photos"
+      "profile_photos",
     );
 
     const user = await User.findById(req.user.id).select(
-      "-password -refreshToken -__v"
+      "-password -refreshToken -__v",
     );
 
     if (!user) {
@@ -152,7 +150,6 @@ const uploadProfilePhoto = async (req, res) => {
   }
 };
 
-
 const uploadCoverPhoto = async (req, res) => {
   try {
     if (!req.file) {
@@ -161,11 +158,11 @@ const uploadCoverPhoto = async (req, res) => {
 
     const imageUrl = await uploadImageToCloudinary(
       req.file.buffer,
-      "cover_photos"
+      "cover_photos",
     );
 
     const user = await User.findById(req.user.id).select(
-      "-password -refreshToken -__v"
+      "-password -refreshToken -__v",
     );
 
     if (!user) {
@@ -216,5 +213,5 @@ module.exports = {
   deleteProfile,
 
   requestVerifyUserController,
-   verifyUserTokenController
+  verifyUserTokenController,
 };

@@ -48,26 +48,33 @@ const createNoticeService = async (req) => {
 
   if (!title || !description) throw new Error("REQUIRED_FIELDS_MISSING");
 
-  const newNotice = await Notice.create({
+  let parsedDate = null;
+
+  if (eventDate) {
+    const d = new Date(eventDate);
+    if (!isNaN(d.getTime())) parsedDate = d;  
+  }
+
+
+  const notice = await Notice.create({
     title,
     description,
     category,
     pdfUrl,
-    isPinned: isPinned || false,
-    status: status || "inactive",
-    eventDate,
+    isPinned: isPinned ?? false,
+    status: status || "active",
+    eventDate: parsedDate,
     eventTime,
     issuedBy,
     venue,
   });
 
-  return newNotice;
+
+  return notice;
 };
 
 // UPDATE NOTICE
 const updateNoticeService = async (id, data) => {
-  if (!id) throw new Error("NOTICE_NOT_FOUND");
-
   const notice = await Notice.findById(id);
   if (!notice) throw new Error("NOTICE_NOT_FOUND");
 
@@ -83,14 +90,13 @@ const updateNoticeService = async (id, data) => {
     "issuedBy",
     "venue",
   ];
- 
 
   updatableFields.forEach((field) => {
     if (data[field] !== undefined) notice[field] = data[field];
   });
 
-  const updatedNotice = await notice.save();
-  return updatedNotice;
+  await notice.save();
+  return notice;
 };
 
 // DELETE NOTICE

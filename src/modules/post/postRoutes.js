@@ -17,10 +17,10 @@ const upload = require("../../../utils/multer");
 
 // POSTS
 router.get("/", getPosts);
-router.get("/:postId", getPost); 
+router.get("/:postId", getPost);
 
 router.post("/", isVerifyUser, upload.single("image"), createPost);
-router.put("/:postId", isVerifyUser, updatePost);
+router.put("/:postId", isVerifyUser, upload.single("image"), updatePost);
 router.delete("/:postId", isVerifyUser, deletePost);
 
 router.patch("/:postId/react", isVerifyUser, toggleReact);

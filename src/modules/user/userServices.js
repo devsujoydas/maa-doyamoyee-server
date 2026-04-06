@@ -9,7 +9,6 @@ const User = require("./userModel");
 const jwt = require("jsonwebtoken");
 
 const getAllUsersService = async (req) => {
- 
   const { search, role, status } = req.query;
 
   const filter = {};
@@ -25,13 +24,13 @@ const getAllUsersService = async (req) => {
 
   const users = await User.find(filter).select("-password -refreshToken");
 
-  return  users ;
+  return users;
 };
 
 const getMyProfileService = async (req) => {
   if (!req.user?.id) throw new Error("UNAUTHORIZE");
 
-  const user = await User.findById(req.user.id);
+  const user = await User.findById(req.user.id).select("-password -refreshToken");
 
   if (!user) throw new Error("USER_NOT_FOUND");
 
@@ -41,7 +40,9 @@ const getMyProfileService = async (req) => {
 const getUsersProfileService = async (req) => {
   if (!req.params?.userId) throw new Error("UNAUTHORIZE");
 
-  const user = await User.findById(req.params.userId).select("-refreshToken -password");
+  const user = await User.findById(req.params.userId).select(
+    "-refreshToken -password",
+  );
 
   if (!user) throw new Error("USER_NOT_FOUND");
 
@@ -49,7 +50,7 @@ const getUsersProfileService = async (req) => {
 };
 
 const updateProfileService = async (req) => {
-  const { name, username, bio,phone, addressInfo, contactDetails } = req.body;
+  const { name, username, bio, phone, addressInfo, contactDetails } = req.body;
 
   const id = req.user?.id;
   if (!id) {

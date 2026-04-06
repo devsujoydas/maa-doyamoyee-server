@@ -15,12 +15,8 @@ router.get("/", getNotices);
 router.get("/:id", getNotice);
 
 
-// CRUD
-router.post("/", createNotice);
-router.put("/:id",  updateNotice);
-router.delete("/:id", deleteNotice);
-
-
-
+router.post("/", isAdmin, createNotice);
+router.put("/:id", isAdmin, updateNotice);
+router.delete("/:id", isAdmin, deleteNotice);
 
 module.exports = router;

@@ -1,24 +1,17 @@
 const mongoose = require("mongoose");
 
-const generateSlug = (title) => {
-  if (!title) return "";
-  return title
-    .trim()
-    .replace(/\s+/g, "-") 
-    .replace(/[^\w\-ঀ-৾]+/g, "")  
-    .toLowerCase();
-};
 
 const NoticeSchema = new mongoose.Schema(
   {
     title: { type: String, required: true, trim: true, maxlength: 200 },
-    slug: { type: String, unique: true, index: true },
+
     description: { type: String, required: true },
-    category: {
+    category: { 
       type: String,
       enum: ["meeting", "event", "announcement", "general", "donation", "puja"],
       default: "general",
     },
+
     pdfUrl: { type: String },
     isPinned: { type: Boolean, default: false },
     status: {
@@ -26,6 +19,7 @@ const NoticeSchema = new mongoose.Schema(
       enum: ["active", "inactive"],
       default: "active",
     },
+
     eventDate: { type: Date },
     eventTime: { type: String },
     issuedBy: { type: String, trim: true },
@@ -34,25 +28,8 @@ const NoticeSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-// Auto-generate slug
-NoticeSchema.pre("save", async function () {
-  if (!this.isModified("title")) return;
 
-  let baseSlug = generateSlug(this.title);
-  if (!baseSlug) baseSlug = `notice-${Date.now()}`;
-
-  let slug = baseSlug;
-  let counter = 1;
-
-  const Notice = mongoose.model("Notice");
-
-  while (await Notice.exists({ slug })) {
-    slug = `${baseSlug}-${counter}`;
-    counter++;
-  }
-
-  this.slug = slug;
-});
+NoticeSchema.index({ title: "text", description: "text" });
   
 const Notice = mongoose.model("Notice", NoticeSchema);
 

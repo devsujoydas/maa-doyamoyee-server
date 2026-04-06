@@ -9,8 +9,8 @@ const {
 // GET ALL NOTICES
 const getNotices = async (req, res) => {
   try {
-    const data = await getNoticesService(req);
-    res.status(200).json(data);
+    const notices = await getNoticesService(req);
+    res.status(200).json(notices);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -33,10 +33,7 @@ const getNotice = async (req, res) => {
 const createNotice = async (req, res) => {
   try {
     const notice = await createNoticeService(req);
-    res.status(201).json({
-      message: "Notice created successfully",
-      notice,
-    });
+    res.status(201).json(notice);
   } catch (err) {
     if (err.message === "REQUIRED_FIELDS_MISSING") {
       return res.status(400).json({ message: "Title & Description required" });
@@ -49,11 +46,8 @@ const createNotice = async (req, res) => {
 const updateNotice = async (req, res) => {
   try {
     const { id } = req.params;
-    const updatedNotice = await updateNoticeService(id, req.body);
-    res.status(200).json({
-      message: "Notice updated successfully",
-      notice: updatedNotice,
-    });
+    const notice = await updateNoticeService(id, req.body);
+    res.status(201).json(notice);
   } catch (err) {
     if (err.message === "NOTICE_NOT_FOUND") {
       return res.status(404).json({ message: "Notice not found" });
@@ -74,8 +68,6 @@ const deleteNotice = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
-
-
 
 module.exports = {
   getNotices,

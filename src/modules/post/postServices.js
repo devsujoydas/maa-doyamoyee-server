@@ -1,34 +1,30 @@
-const Post = require("./postModel");
+const Post =  require("./postModel")
 const Comment = require("./commentModel");
-const User = require("../user/userModel");
 const mongoose = require("mongoose");
-const { uploadImageToCloudinary } = require("../../../utils/uploadService");
 
-const getPostsService = async (req) => {
-  const { author, search, status } = req.query;
+const {
+  uploadImageToCloudinary,
+  deleteImageFromCloudinary,
+} = require("../../../utils/uploadService");
+
+// ---------------- POSTS ----------------
+const getPostsService = async (query) => {
+  const { author, search, status } = query;
   const filter = {};
 
   if (author) {
     if (!mongoose.Types.ObjectId.isValid(author)) {
       throw new Error("INVALID_AUTHOR_ID");
     }
-
-    const validUser = await User.findById(author);
-    if (!validUser) {
-      throw new Error("AUTHOR_NOT_FOUND");
-    }
-
-    filter.author = validUser._id;
+    filter.author = author;
   }
 
-  if (status) {
-    filter.status = status.toLowerCase();
-  }
+  if (status) filter.status = status;
 
   if (search) {
     filter.$or = [
-      { title: { $regex: search, $options: "i" } },
-      { content: { $regex: search, $options: "i" } },
+      { title: new RegExp(search, "i") },
+      { content: new RegExp(search, "i") },
     ];
   }
 
@@ -36,188 +32,158 @@ const getPostsService = async (req) => {
     .populate("author", "name username profileImage")
     .sort({ createdAt: -1 });
 
-  const postsWithCommentCount = await Promise.all(
-    posts.map(async (post) => {
-      const commentCount = await Comment.countDocuments({
-        post: post._id,
-      });
-
-      return {
-        ...post.toObject(),
-        commentCount,
-      };
-    }),
-  );
-
-  return postsWithCommentCount
-
+  return posts;
 };
 
-const getPostService = async (req) => {
-  const post = await Post.findById(req.params.postId).populate(
+const getPostService = async (postId) => {
+  const post = await Post.findById(postId).populate(
     "author",
-    "name username profileImage contactDetails bio",
+    "name username profileImage"
   );
 
   if (!post) throw new Error("POST_NOT_FOUND");
 
-  const commentCount = await Comment.countDocuments({
-    post: req.params.postId,
-  });
-
-  const postWithCommentCount = {
-    ...post.toObject(),
-    commentCount,
-  };
-
-  return postWithCommentCount;
+  return post;
 };
 
-const createPostService = async (req) => {
-  const { title, content, category } = req.body;
+const createPostService = async (userId, body, file) => {
+  const { title, content, category } = body;
 
   if (!title || !content || !category) {
-    throw new Error("All fields are required");
+    throw new Error("ALL_FIELDS_REQUIRED");
   }
 
-  let imageUrl = "";
+  let image = { url: "", publicId: "" };
 
-  if (req.file) {
-    try {
-      imageUrl = await uploadImageToCloudinary(req.file.buffer, "blog_photos");
-    } catch (err) {
-      console.error("Cloudinary upload error:", err);
-      throw new Error("Image upload failed");
-    }
+  if (file) {
+    const result = await uploadImageToCloudinary(file.buffer, "posts");
+    image = result;
   }
 
   const post = await Post.create({
     title,
     content,
     category,
-    postImg: imageUrl,
-    author: req.user.id,
+    postImg: image,
+    author: userId,
   });
-
-  await post.populate("author", "name username profileImage");
 
   return post;
 };
 
-const updatePostService = async (req) => {
-  const post = await Post.findById(req.params.postId);
+const updatePostService = async (user, postId, body, file) => {
+  const post = await Post.findById(postId);
   if (!post) throw new Error("POST_NOT_FOUND");
 
-  if (!post.author.equals(req.user.id)) throw new Error("UNAUTHORIZED");
+  if (!post.author.equals(user.id)) throw new Error("UNAUTHORIZED");
 
-  const { title, content, category } = req.body;
-  if (title) post.title = title;
-  if (content) post.content = content;
-  if (category) post.category = category;
+  // text update
+  if (body.title) post.title = body.title;
+  if (body.content) post.content = body.content;
+  if (body.category) post.category = body.category;
+
+  // image replace
+  if (file) {
+    if (post.postImg?.publicId) {
+      await deleteImageFromCloudinary(post.postImg.publicId);
+    }
+
+    const result = await uploadImageToCloudinary(file.buffer, "posts");
+    post.postImg = result;
+  }
 
   await post.save();
   return post;
 };
 
-const deletePostService = async (req) => {
-  const post = await Post.findById(req.params.postId);
+const deletePostService = async (user, postId) => {
+  const post = await Post.findById(postId);
   if (!post) throw new Error("POST_NOT_FOUND");
 
-  if (!post.author.equals(req.user.id) && req.user.role !== "admin")
+  if (!post.author.equals(user.id) && user.role !== "admin") {
     throw new Error("UNAUTHORIZED");
+  }
+
+  // delete image
+  if (post.postImg?.publicId) {
+    await deleteImageFromCloudinary(post.postImg.publicId);
+  }
 
   await Comment.deleteMany({ post: post._id });
   await Post.findByIdAndDelete(post._id);
 
-  return { message: "Post deleted successfully" };
+  return { message: "Post deleted" };
 };
 
-const getCommentsService = async (req) => {
-  const { postId } = req.params;
-
-  const post = await Post.findById(postId);
-  if (!post) throw new Error("POST_NOT_FOUND");
-
-  const comments = await Comment.find({ post: postId })
+// ---------------- COMMENTS ----------------
+const getCommentsService = async (postId) => {
+  return await Comment.find({ post: postId })
     .populate("author", "name username profileImage")
     .sort({ createdAt: -1 });
-
-  return comments;
 };
 
-const createCommentService = async (req) => {
-  const { text } = req.body;
+const createCommentService = async (userId, postId, text) => {
   if (!text) throw new Error("TEXT_REQUIRED");
 
-  const comment = await Comment.create({
+  return await Comment.create({
     text,
-    author: req.user.id,
-    post: req.params.postId,
+    author: userId,
+    post: postId,
   });
+};
 
-  await comment.populate("author", "name username profileImage");
+const updateCommentService = async (user, commentId, text) => {
+  const comment = await Comment.findById(commentId);
+  if (!comment) throw new Error("COMMENT_NOT_FOUND");
+
+  if (!comment.author.equals(user.id) && user.role !== "admin") {
+    throw new Error("UNAUTHORIZED");
+  }
+
+  comment.text = text || comment.text;
+  await comment.save();
 
   return comment;
 };
 
-const updateCommentService = async (req) => {
-  const comment = await Comment.findById(req.params.commentId).populate(
-    "author",
-    "name username profileImage",
-  );
+const deleteCommentService = async (user, commentId) => {
+  const comment = await Comment.findById(commentId);
   if (!comment) throw new Error("COMMENT_NOT_FOUND");
 
-  if (!comment.author.equals(req.user.id) && req.user.role !== "admin")
+  if (!comment.author.equals(user.id) && user.role !== "admin") {
     throw new Error("UNAUTHORIZED");
-
-  comment.text = req.body.text || comment.text;
-  await comment.save();
-
-  return { message: "Comment update successfully", comment };
-};
-
-const deleteCommentService = async (req) => {
-  const comment = await Comment.findById(req.params.commentId);
-  if (!comment) throw new Error("COMMENT_NOT_FOUND");
-
-  if (!comment.author.equals(req.user.id) && req.user.role !== "admin")
-    throw new Error("UNAUTHORIZED");
-
-  await Comment.findByIdAndDelete(comment._id);
-  return { message: "Comment deleted successfully" };
-};
-
-const toggleReactService = async (req) => {
-  const userId = req.user.id;
-  const { postId } = req.params;
-
-  if (!mongoose.Types.ObjectId.isValid(postId)) {
-    throw new Error("Invalid Post ID");
   }
 
+  await comment.deleteOne();
+  return { message: "Comment deleted" };
+};
+
+// ---------------- REACT ----------------
+const toggleReactService = async (userId, postId) => {
   const post = await Post.findById(postId);
+  if (!post) throw new Error("POST_NOT_FOUND");
 
-  if (!post) throw new Error("Post not found");
+  const exists = post.reacts.includes(userId);
 
-  const alreadyReacted = post.reacts.includes(userId);
-
-  let updatedPost;
-
-  if (alreadyReacted) {
-    updatedPost = await Post.findByIdAndUpdate(
-      postId,
-      { $pull: { reacts: userId } },
-      { returnDocument: "after" }, // <-- updated here
-    );
-    return { message: "React removed", post: updatedPost };
+  if (exists) {
+    post.reacts.pull(userId);
   } else {
-    updatedPost = await Post.findByIdAndUpdate(
-      postId,
-      { $addToSet: { reacts: userId } },
-      { returnDocument: "after" }, // <-- updated here
-    );
-    return { message: "React added", post: updatedPost };
+    post.reacts.addToSet(userId);
   }
+
+  await post.save();
+  return post;
+};
+
+// ---------------- STATUS ----------------
+const updatePostStatusService = async (postId, status) => {
+  const post = await Post.findById(postId);
+  if (!post) throw new Error("POST_NOT_FOUND");
+
+  post.status = status;
+  await post.save();
+
+  return post;
 };
 
 module.exports = {
@@ -231,4 +197,5 @@ module.exports = {
   updateCommentService,
   deleteCommentService,
   toggleReactService,
+  updatePostStatusService,
 };

@@ -5,16 +5,13 @@ const {
   deleteMessageService,
   markReadService,
   markUnreadService,
-} = require("./messageServices");
+} = require("./messageService");
 
-// CREATE (public)
+// CREATE MESSAGE (PUBLIC)
 const createMessage = async (req, res) => {
   try {
-    const message = await createMessageService(req);
-    res.status(201).json({
-      message: "Message sent successfully",
-      data: message,
-    });
+    const message = await createMessageService(req.body);
+    res.status(201).json({ message: "Message sent successfully", data: message });
   } catch (err) {
     if (err.message === "REQUIRED_FIELDS_MISSING") {
       return res.status(400).json({ message: "Name, Email & Message required" });
@@ -23,24 +20,21 @@ const createMessage = async (req, res) => {
   }
 };
 
-// GET ALL (admin)
+// GET ALL (ADMIN)
 const getMessages = async (req, res) => {
   try {
-    const data = await getMessagesService(req);
+    const data = await getMessagesService();
     res.status(200).json(data);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 };
 
-// UPDATE
+// UPDATE (ADMIN)
 const updateMessage = async (req, res) => {
   try {
-    const msg = await updateMessageService(req);
-    res.status(200).json({
-      message: "Message updated",
-      data: msg,
-    });
+    const msg = await updateMessageService(req.params.id, req.body);
+    res.status(200).json({ message: "Message updated", data: msg });
   } catch (err) {
     if (err.message === "MESSAGE_NOT_FOUND") {
       return res.status(404).json({ message: "Message not found" });
@@ -49,10 +43,10 @@ const updateMessage = async (req, res) => {
   }
 };
 
-// DELETE
+// DELETE (ADMIN)
 const deleteMessage = async (req, res) => {
   try {
-    const result = await deleteMessageService(req);
+    const result = await deleteMessageService(req.params.id);
     res.status(200).json(result);
   } catch (err) {
     if (err.message === "MESSAGE_NOT_FOUND") {
@@ -65,11 +59,8 @@ const deleteMessage = async (req, res) => {
 // MARK READ
 const markRead = async (req, res) => {
   try {
-    const msg = await markReadService(req);
-    res.status(200).json({
-      message: "Marked as read",
-      data: msg,
-    });
+    const msg = await markReadService(req.params.id);
+    res.status(200).json({ message: "Marked as read", data: msg });
   } catch (err) {
     if (err.message === "MESSAGE_NOT_FOUND") {
       return res.status(404).json({ message: "Message not found" });
@@ -81,11 +72,8 @@ const markRead = async (req, res) => {
 // MARK UNREAD
 const markUnread = async (req, res) => {
   try {
-    const msg = await markUnreadService(req);
-    res.status(200).json({
-      message: "Marked as unread",
-      data: msg,
-    });
+    const msg = await markUnreadService(req.params.id);
+    res.status(200).json({ message: "Marked as unread", data: msg });
   } catch (err) {
     if (err.message === "MESSAGE_NOT_FOUND") {
       return res.status(404).json({ message: "Message not found" });

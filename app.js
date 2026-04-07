@@ -9,8 +9,11 @@ const noticeRoutes = require("./src/modules/notice/noticeRoutes");
 const eventRoutes = require("./src/modules/event/eventRoutes");
 const messageRoutes = require("./src/modules/message/messageRoutes");
 
+const galleryRoutes = require("./src/modules/gallery/galleryRoutes");
 
 
+
+router.use("/gallery", galleryRoutes);
 
 router.use("/auth", authRoutes);
 router.use("/password", passRoutes); 

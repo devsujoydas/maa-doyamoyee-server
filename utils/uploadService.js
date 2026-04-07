@@ -1,20 +1,33 @@
-const cloudinary = require("../utils/cloudinary");
+const cloudinary = require("./cloudinary");
 
-/**
- * Upload image buffer to Cloudinary
- * @param {Buffer} fileBuffer
- * @param {String} folder
- * @returns {Promise<String>} - secure_url
- */
+// UPLOAD
 const uploadImageToCloudinary = async (fileBuffer, folder) => {
   return new Promise((resolve, reject) => {
     cloudinary.uploader
       .upload_stream({ folder }, (error, result) => {
         if (error) return reject(error);
-        resolve(result.secure_url);
+
+        resolve({
+          url: result.secure_url,
+          publicId: result.public_id,
+        });
       })
       .end(fileBuffer);
   });
 };
 
-module.exports = { uploadImageToCloudinary };
+// DELETE
+const deleteImageFromCloudinary = async (publicId) => {
+  if (!publicId) return;
+
+  try {
+    await cloudinary.uploader.destroy(publicId);
+  } catch (err) {
+    console.error("Cloudinary delete failed:", err.message);
+  }
+};
+
+module.exports = {
+  uploadImageToCloudinary,
+  deleteImageFromCloudinary,
+};

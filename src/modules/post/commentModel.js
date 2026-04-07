@@ -15,9 +15,8 @@ const CommentSchema = new mongoose.Schema(
       ref: "Post",
       required: true,
     },
-    
   },
-  { timestamps: true },
+  { timestamps: true }
 );
 
 CommentSchema.methods.toJSON = function () {
@@ -26,6 +25,4 @@ CommentSchema.methods.toJSON = function () {
   return obj;
 };
 
-const Comment = mongoose.model("Comment", CommentSchema);
-
-module.exports = Comment;
+module.exports = mongoose.model("Comment", CommentSchema);

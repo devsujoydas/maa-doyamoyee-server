@@ -4,23 +4,23 @@ const {
   createNoticeService,
   updateNoticeService,
   deleteNoticeService,
-} = require("./noticeServices");
+} = require("./noticeService");
 
-// GET ALL NOTICES
+// GET ALL
 const getNotices = async (req, res) => {
   try {
-    const notices = await getNoticesService(req);
-    res.status(200).json(notices);
+    const data = await getNoticesService(req.query);
+    res.status(200).json(data);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 };
 
-// GET SINGLE NOTICE
+// GET ONE
 const getNotice = async (req, res) => {
   try {
-    const notice = await getNoticeService(req);
-    res.status(200).json(notice);
+    const data = await getNoticeService(req.params.id);
+    res.status(200).json(data);
   } catch (err) {
     if (err.message === "NOTICE_NOT_FOUND") {
       return res.status(404).json({ message: "Notice not found" });
@@ -29,25 +29,42 @@ const getNotice = async (req, res) => {
   }
 };
 
-// CREATE NOTICE
+// CREATE
 const createNotice = async (req, res) => {
   try {
-    const notice = await createNoticeService(req);
-    res.status(201).json(notice);
+    const data = await createNoticeService(req.user.id, req.body);
+
+    res.status(201).json({
+      message: "Notice created successfully",
+      notice: data,
+    });
   } catch (err) {
     if (err.message === "REQUIRED_FIELDS_MISSING") {
-      return res.status(400).json({ message: "Title & Description required" });
+      return res.status(400).json({
+        message: "Title & Description required",
+      });
+    }
+    if (err.message === "INVALID_DATE") {
+      return res.status(400).json({
+        message: "Invalid event date",
+      });
     }
     res.status(500).json({ message: err.message });
   }
 };
 
-// UPDATE NOTICE
+// UPDATE
 const updateNotice = async (req, res) => {
   try {
-    const { id } = req.params;
-    const notice = await updateNoticeService(id, req.body);
-    res.status(201).json(notice);
+    const data = await updateNoticeService(
+      req.params.id,
+      req.body
+    );
+
+    res.status(200).json({
+      message: "Notice updated successfully",
+      notice: data,
+    });
   } catch (err) {
     if (err.message === "NOTICE_NOT_FOUND") {
       return res.status(404).json({ message: "Notice not found" });
@@ -56,11 +73,12 @@ const updateNotice = async (req, res) => {
   }
 };
 
-// DELETE NOTICE
+// DELETE
 const deleteNotice = async (req, res) => {
   try {
-    const result = await deleteNoticeService(req);
-    res.status(200).json(result);
+    const data = await deleteNoticeService(req.params.id);
+
+    res.status(200).json(data);
   } catch (err) {
     if (err.message === "NOTICE_NOT_FOUND") {
       return res.status(404).json({ message: "Notice not found" });

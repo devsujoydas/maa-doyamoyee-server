@@ -4,73 +4,69 @@ const {
   getEventService,
   updateEventService,
   deleteEventService,
-} = require("./eventServices");
+} = require("./eventService");
 
 // CREATE
 const createEvent = async (req, res) => {
   try {
-    const event = await createEventService(req);
+    const data = await createEventService(req.user.id, req.body, req.file);
+
     res.status(201).json({
       message: "Event created successfully",
-      event,
+      event: data,
     });
   } catch (err) {
-    if (err.message === "REQUIRED_FIELDS_MISSING") {
-      return res.status(400).json({ message: "Title, description & eventDate required" });
-    }
-    res.status(500).json({ message: err.message });
+    res.status(400).json({ message: err.message });
   }
 };
 
 // GET ALL
 const getEvents = async (req, res) => {
   try {
-    const data = await getEventsService(req);
-    res.status(200).json(data);
+    const data = await getEventsService(req.query);
+    res.json(data);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 };
 
-// GET SINGLE
+// GET ONE
 const getEvent = async (req, res) => {
   try {
-    const event = await getEventService(req);
-    res.status(200).json(event);
+    const data = await getEventService(req.params.id);
+    res.json(data);
   } catch (err) {
-    if (err.message === "EVENT_NOT_FOUND") {
-      return res.status(404).json({ message: "Event not found" });
-    }
-    res.status(500).json({ message: err.message });
+    res.status(404).json({ message: err.message });
   }
 };
 
 // UPDATE
 const updateEvent = async (req, res) => {
   try {
-    const event = await updateEventService(req);
-    res.status(200).json({
+    const data = await updateEventService(
+      req.user,
+      req.params.id,
+      req.body,
+      req.file,
+    );
+
+    res.json({
       message: "Event updated successfully",
-      event,
+      event: data,
     });
   } catch (err) {
-    if (err.message === "EVENT_NOT_FOUND") {
-      return res.status(404).json({ message: "Event not found" });
-    }
-    res.status(500).json({ message: err.message });
+    res.status(400).json({ message: err.message });
   }
 };
 
 // DELETE
 const deleteEvent = async (req, res) => {
   try {
-    const result = await deleteEventService(req);
-    res.status(200).json(result);
+    const data = await deleteEventService(req.user, req.params.id);
+
+    res.json(data);
   } catch (err) {
-    if (err.message === "EVENT_NOT_FOUND") {
-      return res.status(404).json({ message: "Event not found" });
-    }
-    res.status(500).json({ message: err.message });
+    res.status(400).json({ message: err.message });
   }
 };
 

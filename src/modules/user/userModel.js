@@ -3,22 +3,43 @@ const mongoose = require("mongoose");
 const UserSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, trim: true },
-    email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true,
+      trim: true,
+    },
     phone: { type: String, required: true },
     password: { type: String, required: true, minlength: 8 },
     username: { type: String, unique: true, lowercase: true, trim: true },
 
-    role: { type: String, enum: ["admin", "user", "moderator"], default: "user" },
+    role: {
+      type: String,
+      enum: ["admin", "user", "moderator"],
+      default: "user",
+    },
 
     profileImage: {
-      type: String,
-      default:
-        "https://res.cloudinary.com/dpdsgroa7/image/upload/v1774784662/profile-placeholder-image-gray-silhouette-no-photo_qtc1co.webp",
+      url: {
+        type: String,
+        default: "/default_profile.webp",
+      },
+      publicId: {
+        type: String,
+        default: "",
+      },
     },
+
     coverImage: {
-      type: String,
-      default:
-        "https://res.cloudinary.com/dpdsgroa7/image/upload/v1774784559/placeholder_ayvjp4.webp",
+      url: {
+        type: String,
+        default: "/default_cover.webp",
+      },
+      publicId: {
+        type: String,
+        default: "",
+      },
     },
     bio: { type: String, default: "" },
     isVerified: { type: Boolean, default: false },
@@ -42,7 +63,7 @@ const UserSchema = new mongoose.Schema(
       github: { type: String, default: "" },
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 UserSchema.methods.toJSON = function () {

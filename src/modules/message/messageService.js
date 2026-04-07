@@ -1,51 +1,45 @@
 const Message = require("./messageModel");
 
-// CREATE
-const createMessageService = async (req) => {
-  const { name, email, message } = req.body;
+// CREATE MESSAGE
+const createMessageService = async (data) => {
+  const { name, email, message } = data;
 
   if (!name || !email || !message) {
     throw new Error("REQUIRED_FIELDS_MISSING");
   }
 
-  const newMessage = await Message.create(req.body);
+  const newMessage = await Message.create(data);
   return newMessage;
 };
 
-// GET ALL
-const getMessagesService = async (req) => {
+// GET ALL MESSAGES
+const getMessagesService = async () => {
   const messages = await Message.find().sort({ createdAt: -1 });
-
-  return {
-    total: messages.length,
-    messages,
-  };
+  return { total: messages.length, messages };
 };
 
-// UPDATE (optional edit)
-const updateMessageService = async (req) => {
-  const msg = await Message.findById(req.params.id);
+// UPDATE MESSAGE
+const updateMessageService = async (id, data) => {
+  const msg = await Message.findById(id);
   if (!msg) throw new Error("MESSAGE_NOT_FOUND");
 
-  Object.assign(msg, req.body);
+  Object.assign(msg, data);
   await msg.save();
 
   return msg;
 };
 
-// DELETE
-const deleteMessageService = async (req) => {
-  const msg = await Message.findById(req.params.id);
+// DELETE MESSAGE
+const deleteMessageService = async (id) => {
+  const msg = await Message.findByIdAndDelete(id);
   if (!msg) throw new Error("MESSAGE_NOT_FOUND");
-
-  await Message.findByIdAndDelete(req.params.id);
 
   return { message: "Message deleted successfully" };
 };
 
 // MARK READ
-const markReadService = async (req) => {
-  const msg = await Message.findById(req.params.id);
+const markReadService = async (id) => {
+  const msg = await Message.findById(id);
   if (!msg) throw new Error("MESSAGE_NOT_FOUND");
 
   msg.isRead = true;
@@ -55,8 +49,8 @@ const markReadService = async (req) => {
 };
 
 // MARK UNREAD
-const markUnreadService = async (req) => {
-  const msg = await Message.findById(req.params.id);
+const markUnreadService = async (id) => {
+  const msg = await Message.findById(id);
   if (!msg) throw new Error("MESSAGE_NOT_FOUND");
 
   msg.isRead = false;

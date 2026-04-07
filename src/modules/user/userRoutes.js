@@ -1,49 +1,36 @@
 const express = require("express");
 const router = express.Router();
 
-const {
-  getUsers,
-  getMyProfile,
-  updateProfile,
-  deleteProfile,
-  getUsersProfile,
-  uploadProfilePhoto,
-  uploadCoverPhoto,
-  requestVerifyUserController,
-  verifyUserTokenController,
-} = require("./userController");
 const isVerifyUser = require("../../middlewares/verifyUser");
 const upload = require("../../../utils/multer");
+const { getUsers, getUsersProfile, getMyProfile, updateProfile, deleteProfile, uploadProfilePhoto, uploadCoverPhoto, requestVerifyUser, verifyUserToken } = require("./userController");
 
+// Public
 router.get("/", getUsers);
-router.get("/profile", isVerifyUser, getMyProfile);
 router.get("/profile/:userId", getUsersProfile);
 
+// Private
+router.get("/profile", isVerifyUser, getMyProfile);
 router.put("/profile", isVerifyUser, updateProfile);
 router.delete("/profile", isVerifyUser, deleteProfile);
 
-// Profile photo
+// Images
 router.put(
   "/profile-photo",
   isVerifyUser,
   upload.single("image"),
-  uploadProfilePhoto,
+  uploadProfilePhoto
 );
 
-// Cover photo
 router.put(
   "/cover-photo",
   isVerifyUser,
   upload.single("image"),
-  uploadCoverPhoto,
+  uploadCoverPhoto
 );
 
-
-
-router.post("/request", requestVerifyUserController);
-
-// GET → verify token from link
-router.get("/verify", verifyUserTokenController);
-
+// Verify
+router.post("/request", requestVerifyUser);
+router.get("/verify", verifyUserToken);
 
 module.exports = router;

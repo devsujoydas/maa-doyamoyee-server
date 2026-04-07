@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const isAdmin = require("../../middlewares/isAdmin");
 
 const {
   createMessage,
@@ -9,17 +10,16 @@ const {
   markRead,
   markUnread,
 } = require("./messageController");
-const isAdmin = require("../../middlewares/isAdmin");
 
 // PUBLIC
 router.post("/", createMessage);
 
-// ADMIN
+// ADMIN ONLY
 router.get("/", isAdmin, getMessages);
-
 router.put("/:id", isAdmin, updateMessage);
 router.delete("/:id", isAdmin, deleteMessage);
 
+// MARK READ / UNREAD
 router.patch("/:id/read", isAdmin, markRead);
 router.patch("/:id/unread", isAdmin, markUnread);
 

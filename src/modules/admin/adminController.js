@@ -3,63 +3,62 @@ const {
   makeAdminService,
   removeAdminService,
   deletePostAdminService,
-  updatePostStatusService,
   deleteCommentAdminService,
 } = require("./adminService");
 
+// DELETE USER
 const deleteUser = async (req, res) => {
   try {
     const result = await deleteUserService(req.params.userId);
-    res.json(result);
+    res.status(200).json(result);
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    res.status(err.code || 400).json({ message: err.message });
   }
 };
 
+// MAKE ADMIN
 const makeAdmin = async (req, res) => {
   try {
     const user = await makeAdminService(req.params.userId);
-    res.json(user);
+    res.status(200).json({
+      message: "User promoted to admin",
+      user,
+    });
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    res.status(err.code || 400).json({ message: err.message });
   }
 };
 
+// REMOVE ADMIN
 const removeAdmin = async (req, res) => {
   try {
     const user = await removeAdminService(req.params.userId);
-    res.json(user);
+    res.status(200).json({
+      message: "Admin role removed",
+      user,
+    });
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    res.status(err.code || 400).json({ message: err.message });
   }
 };
 
+// DELETE POST
 const deletePost = async (req, res) => {
   try {
     const result = await deletePostAdminService(req.params.postId);
-    res.json(result);
+    res.status(200).json(result);
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    res.status(err.code || 400).json({ message: err.message });
   }
 };
 
+// DELETE COMMENT
 const deleteComment = async (req, res) => {
   try {
     const result = await deleteCommentAdminService(req.params.commentId);
-    res.json(result);
+    res.status(200).json(result);
   } catch (err) {
-    res.status(400).json({ message: err.message });
-  }
-};
-const updatePostStatus = async (req, res) => {
-  try {
-    const post = await updatePostStatusService(
-      req.params.postId,
-      req.body.status
-    );
-    res.json(post);
-  } catch (err) {
-    res.status(400).json({ message: err.message });
+    res.status(err.code || 400).json({ message: err.message });
   }
 };
 
@@ -69,5 +68,4 @@ module.exports = {
   removeAdmin,
   deletePost,
   deleteComment,
-  updatePostStatus,
 };

@@ -2,27 +2,29 @@ const User = require("../user/userModel");
 const Post = require("../post/postModel");
 const Comment = require("../post/commentModel");
 
+// -------------------- USER --------------------
 
+// DELETE USER
 const deleteUserService = async (userId) => {
   const user = await User.findById(userId);
-  if (!user) throw new Error("USER_NOT_FOUND");
+  if (!user) throw { message: "USER_NOT_FOUND", code: 404 };
 
-  const userDeleted = await User.findByIdAndDelete(userId);
+  await User.findByIdAndDelete(userId);
   const postsDeleted = await Post.deleteMany({ author: userId });
   const commentsDeleted = await Comment.deleteMany({ author: userId });
 
   return {
     message: "User deleted successfully",
-    userDeleted: userDeleted.deletedCount,
+    userDeleted: 1,
     postsDeleted: postsDeleted.deletedCount,
     commentsDeleted: commentsDeleted.deletedCount,
   };
 };
 
-
+// MAKE ADMIN
 const makeAdminService = async (userId) => {
   const user = await User.findById(userId);
-  if (!user) throw new Error("USER_NOT_FOUND");
+  if (!user) throw { message: "USER_NOT_FOUND", code: 404 };
 
   user.role = "admin";
   await user.save();
@@ -30,9 +32,10 @@ const makeAdminService = async (userId) => {
   return user;
 };
 
+// REMOVE ADMIN
 const removeAdminService = async (userId) => {
   const user = await User.findById(userId);
-  if (!user) throw new Error("USER_NOT_FOUND");
+  if (!user) throw { message: "USER_NOT_FOUND", code: 404 };
 
   user.role = "user";
   await user.save();
@@ -40,39 +43,36 @@ const removeAdminService = async (userId) => {
   return user;
 };
 
+// -------------------- POST --------------------
+
+// DELETE POST
 const deletePostAdminService = async (postId) => {
   const post = await Post.findById(postId);
-  if (!post) throw new Error("POST_NOT_FOUND");
+  if (!post) throw { message: "POST_NOT_FOUND", code: 404 };
 
-  const postsDeleted = await Post.deleteMany({ post: postId });
+  await Post.findByIdAndDelete(postId);
   const commentsDeleted = await Comment.deleteMany({ post: postId });
 
   return {
     message: "Post deleted by admin",
-    postsDeleted: postsDeleted.deletedCount,
+    postDeleted: 1,
     commentsDeleted: commentsDeleted.deletedCount,
   };
 };
 
+// -------------------- COMMENT --------------------
+
+// DELETE COMMENT
 const deleteCommentAdminService = async (commentId) => {
   const comment = await Comment.findById(commentId);
-  if (!comment) throw new Error("COMMENT_NOT_FOUND");
-  
+  if (!comment) throw { message: "COMMENT_NOT_FOUND", code: 404 };
+
   await Comment.findByIdAndDelete(commentId);
 
   return {
-    message: "Comment deleted by admin", 
+    message: "Comment deleted by admin",
+    commentDeleted: 1,
   };
-};
-
-const updatePostStatusService = async (postId, status) => {
-  const post = await Post.findById(postId);
-  if (!post) throw new Error("POST_NOT_FOUND");
-
-  post.status = status;
-  await post.save();
-
-  return post;
 };
 
 module.exports = {
@@ -80,6 +80,5 @@ module.exports = {
   makeAdminService,
   removeAdminService,
   deletePostAdminService,
-  updatePostStatusService,
   deleteCommentAdminService,
 };

@@ -1,201 +1,156 @@
-const verifyEmailTemplate = require("../../../utils/emailTemplates/verifyEmailTemplate");
-const sendEmail = require("../../../utils/sendEmail");
-const shuffleArray = require("../../../utils/shuffleArray");
-const verifyPassResetToken = require("../../../utils/verifyPassResetToken");
-const { FRONTEND_URL, JWT_SECRET } = require("../../configs/config");
-const Comment = require("../post/commentModel");
-const Post = require("../post/postModel");
 const User = require("./userModel");
-const jwt = require("jsonwebtoken");
+const Post = require("../post/postModel");
+const Comment = require("../post/commentModel");
+const {
+  uploadImageToCloudinary,
+  deleteImageFromCloudinary,
+} = require("../../../utils/uploadService");
 
-const getAllUsersService = async (req) => {
-  const { search, role, status } = req.query;
+const jwt = require("jsonwebtoken");
+const sendEmail = require("../../../utils/sendEmail");
+const verifyEmailTemplate = require("../../../utils/emailTemplates/verifyEmailTemplate");
+const { FRONTEND_URL, JWT_SECRET } = require("../../configs/config");
+
+// ---------------- BASIC ----------------
+const getUsersService = async (query) => {
+  const { search, role } = query;
 
   const filter = {};
+
   if (search) {
     filter.$or = [
-      { name: { $regex: search, $options: "i" } },
-      { username: { $regex: search, $options: "i" } },
-      { email: { $regex: search, $options: "i" } },
+      { name: new RegExp(search, "i") },
+      { email: new RegExp(search, "i") },
+      { username: new RegExp(search, "i") },
     ];
   }
+
   if (role) filter.role = role;
-  if (status) filter.status = status;
 
-  const users = await User.find(filter).select("-password -refreshToken");
-
-  return users;
+  return await User.find(filter).select("-password -refreshToken");
 };
 
-const getMyProfileService = async (req) => {
-  if (!req.user?.id) throw new Error("UNAUTHORIZE");
+const getMyProfileService = async (id) => {
+  if (!id) throw new Error("UNAUTHORIZED");
 
-  const user = await User.findById(req.user.id).select("-password -refreshToken");
+  const user = await User.findById(id).select("-password -refreshToken");
 
   if (!user) throw new Error("USER_NOT_FOUND");
 
   return user;
 };
 
-const getUsersProfileService = async (req) => {
-  if (!req.params?.userId) throw new Error("UNAUTHORIZE");
-
-  const user = await User.findById(req.params.userId).select(
-    "-refreshToken -password",
-  );
-
+const getUsersProfileService = async (id) => {
+  const user = await User.findById(id).select("-password -refreshToken");
   if (!user) throw new Error("USER_NOT_FOUND");
-
   return user;
 };
 
-const updateProfileService = async (req) => {
-  const { name, username, bio, phone, addressInfo, contactDetails } = req.body;
+const updateProfileService = async (id, body) => {
+  const update = {};
 
-  const id = req.user?.id;
-  if (!id) {
-    throw new Error("USER_NOT_FOUND");
-  }
+  if (body.name) update.name = body.name;
+  if (body.bio !== undefined) update.bio = body.bio;
 
-  const updateFields = {};
-
-  // ✅ Name
-  if (name?.trim()) {
-    updateFields.name = name.trim();
-  }
-
-  // ✅ Username (unique check)
-  if (username?.trim()) {
+  if (body.username) {
     const exist = await User.findOne({
-      username: username.toLowerCase(),
+      username: body.username,
       _id: { $ne: id },
     });
-    if (exist) throw new Error("USERNAME_ALREADY_EXISTS");
-    updateFields.username = username.toLowerCase().trim();
+    if (exist) throw new Error("USERNAME_EXISTS");
+    update.username = body.username;
   }
 
-  if (bio !== undefined) {
-    updateFields.bio = bio;
-  }
-  if (phone !== undefined) {
-    updateFields.phone = phone;
-  }
+  const user = await User.findByIdAndUpdate(id, update, {
+    new: true,
+  }).select("-password -refreshToken");
 
-  // ✅ Address Info (nested object)
-  if (addressInfo && typeof addressInfo === "object") {
-    Object.entries(addressInfo).forEach(([key, value]) => {
-      if (value !== undefined && value !== "") {
-        updateFields[`addressInfo.${key}`] = value;
-      }
-    });
-  }
-  if (contactDetails && typeof contactDetails === "object") {
-    Object.entries(contactDetails).forEach(([key, value]) => {
-      if (value !== undefined && value !== "") {
-        updateFields[`contactDetails.${key}`] = value;
-      }
-    });
-  }
-
-  // ❌ Nothing to update
-  if (Object.keys(updateFields).length === 0) {
-    throw new Error("NO_FIELDS_TO_UPDATE");
-  }
-
-  // ✅ Update user
-  const updatedUser = await User.findByIdAndUpdate(
-    id,
-    { $set: updateFields },
-    {
-      returnDocument: "after",
-      runValidators: true,
-    },
-  ).select("-password -refreshToken -__v");
-
-  if (!updatedUser) {
-    throw new Error("USER_NOT_FOUND");
-  }
-
-  return updatedUser;
+  return user;
 };
 
-const deleteProfileService = async (req) => {
-  const id = req.user.id;
+// ---------------- IMAGE ----------------
+const updateUserImageService = async (userId, file, field, folder) => {
+  if (!file) throw new Error("NO_FILE");
 
-  const user = await User.findById(id);
-  if (!user) {
-    throw new Error("USER_NOT_FOUND");
+  const user = await User.findById(userId);
+  if (!user) throw new Error("USER_NOT_FOUND");
+
+  // delete old
+  if (user[field]?.publicId) {
+    await deleteImageFromCloudinary(user[field].publicId);
   }
 
-  const userDeleted = await User.deleteOne({ _id: id });
-  const postsDeleted = await Post.deleteMany({ author: id });
-  const commentsDeleted = await Comment.deleteMany({ author: id });
+  // upload new
+  const result = await uploadImageToCloudinary(file.buffer, folder);
 
-  return {
-    userDeleted: userDeleted.deletedCount,
-    postsDeleted: postsDeleted.deletedCount,
-    commentsDeleted: commentsDeleted.deletedCount,
+  user[field] = {
+    url: result.url,
+    publicId: result.publicId,
   };
+
+  await user.save();
+
+  return user;
 };
 
+// ---------------- DELETE ----------------
+const deleteProfileService = async (id) => {
+  const user = await User.findById(id);
+  if (!user) throw new Error("USER_NOT_FOUND");
+
+  // delete images
+  if (user.profileImage?.publicId) {
+    await deleteImageFromCloudinary(user.profileImage.publicId);
+  }
+
+  if (user.coverImage?.publicId) {
+    await deleteImageFromCloudinary(user.coverImage.publicId);
+  }
+
+  await User.deleteOne({ _id: id });
+  await Post.deleteMany({ author: id });
+  await Comment.deleteMany({ author: id });
+
+  return { success: true };
+};
+
+// ---------------- VERIFY ----------------
 const requestVerifyUserService = async (email) => {
   if (!email) throw new Error("EMAIL_REQUIRED");
 
-  const user = await User.findOne({ email }).select("_id email");
+  const user = await User.findOne({ email });
+  if (!user) return "Verification email sent";
 
-  const message = "Email Verification link has been sent to your email.";
-
-  if (!user) return message;
-
-  const token = jwt.sign({ id: user._id, type: "verify" }, JWT_SECRET, {
-    expiresIn: "24h",
+  const token = jwt.sign({ id: user._id }, JWT_SECRET, {
+    expiresIn: "1d",
   });
 
-  const verifyUrl = `${FRONTEND_URL}/verify-email?token=${token}`;
+  const link = `${FRONTEND_URL}/verify-email?token=${token}`;
 
-  await sendEmail(
-    email,
-    "🔐 Verify Your Email - Maa Doyamoyee",
-    verifyEmailTemplate(verifyUrl),
-  );
+  await sendEmail(email, "Verify Email", verifyEmailTemplate(link));
 
-  return message;
+  return "Verification email sent";
 };
 
-/**
- * Verify user token
- */
 const verifyUserTokenService = async (token) => {
-  if (!token) throw new Error("TOKEN_REQUIRED");
+  const decoded = jwt.verify(token, JWT_SECRET);
 
-  let payload;
-  try {
-    payload = jwt.verify(token, JWT_SECRET);
-  } catch (err) {
-    throw new Error("INVALID_OR_EXPIRED_TOKEN");
-  }
-
-  if (payload.type !== "verify") throw new Error("INVALID_TOKEN_TYPE");
-
-  const user = await User.findById(payload.id);
+  const user = await User.findById(decoded.id);
   if (!user) throw new Error("USER_NOT_FOUND");
-
-  if (user.isVerified) return "Your email is already verified.";
 
   user.isVerified = true;
   await user.save();
 
-  return "Your email has been successfully verified!";
+  return "Email verified";
 };
 
 module.exports = {
-  getAllUsersService,
-  getUsersProfileService,
-
+  getUsersService,
   getMyProfileService,
+  getUsersProfileService,
   updateProfileService,
   deleteProfileService,
-
+  updateUserImageService,
   requestVerifyUserService,
   verifyUserTokenService,
 };

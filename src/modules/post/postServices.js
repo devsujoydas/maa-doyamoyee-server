@@ -1,4 +1,4 @@
-const Post =  require("./postModel")
+const Post = require("./postModel");
 const Comment = require("./commentModel");
 const mongoose = require("mongoose");
 
@@ -6,6 +6,7 @@ const {
   uploadImageToCloudinary,
   deleteImageFromCloudinary,
 } = require("../../../utils/uploadService");
+const commentModel = require("./commentModel");
 
 // ---------------- POSTS ----------------
 const getPostsService = async (query) => {
@@ -32,18 +33,37 @@ const getPostsService = async (query) => {
     .populate("author", "name username profileImage")
     .sort({ createdAt: -1 });
 
-  return posts;
+  // 👇 same logic as single post
+  const postsWithCount = await Promise.all(
+    posts.map(async (post) => {
+      const commentCount = await commentModel.countDocuments({
+        post: post.id,
+      });
+
+      return {
+        ...post.toObject(),
+        commentCount,
+      };
+    }),
+  );
+
+  return postsWithCount;
 };
 
 const getPostService = async (postId) => {
   const post = await Post.findById(postId).populate(
     "author",
-    "name username profileImage"
+    "name username profileImage",
   );
 
   if (!post) throw new Error("POST_NOT_FOUND");
 
-  return post;
+  const commentCount = await commentModel.countDocuments({ post: postId });
+
+  return {
+    ...post.toObject(),
+    commentCount,
+  };
 };
 
 const createPostService = async (userId, body, file) => {
@@ -77,12 +97,10 @@ const updatePostService = async (user, postId, body, file) => {
 
   if (!post.author.equals(user.id)) throw new Error("UNAUTHORIZED");
 
-  // text update
   if (body.title) post.title = body.title;
   if (body.content) post.content = body.content;
   if (body.category) post.category = body.category;
 
-  // image replace
   if (file) {
     if (post.postImg?.publicId) {
       await deleteImageFromCloudinary(post.postImg.publicId);
@@ -125,11 +143,20 @@ const getCommentsService = async (postId) => {
 const createCommentService = async (userId, postId, text) => {
   if (!text) throw new Error("TEXT_REQUIRED");
 
-  return await Comment.create({
+  // 1️⃣ create comment
+  const comment = await Comment.create({
     text,
     author: userId,
     post: postId,
   });
+
+  // 2️⃣ populate author
+  const populatedComment = await Comment.findById(comment._id).populate(
+    "author",
+    "name username profileImage",
+  );
+
+  return populatedComment;
 };
 
 const updateCommentService = async (user, commentId, text) => {
@@ -143,8 +170,12 @@ const updateCommentService = async (user, commentId, text) => {
   comment.text = text || comment.text;
   await comment.save();
 
+  // populate author before return
+  await comment.populate("author", "name username profileImage");
+
   return comment;
 };
+
 
 const deleteCommentService = async (user, commentId) => {
   const comment = await Comment.findById(commentId);
@@ -157,6 +188,7 @@ const deleteCommentService = async (user, commentId) => {
   await comment.deleteOne();
   return { message: "Comment deleted" };
 };
+
 
 // ---------------- REACT ----------------
 const toggleReactService = async (userId, postId) => {

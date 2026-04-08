@@ -1,4 +1,5 @@
-const {getPostsService,
+const {
+  getPostsService,
   getPostService,
   createPostService,
   updatePostService,
@@ -8,8 +9,8 @@ const {getPostsService,
   updateCommentService,
   deleteCommentService,
   toggleReactService,
-  updatePostStatusService
-} = require("./postServices")
+  updatePostStatusService,
+} = require("./postServices");
 
 // POSTS
 const getPosts = async (req, res) => {
@@ -45,7 +46,7 @@ const updatePost = async (req, res) => {
       req.user,
       req.params.postId,
       req.body,
-      req.file
+      req.file,
     );
     res.json({ message: "Post updated", post: data });
   } catch (err) {
@@ -77,7 +78,7 @@ const createComment = async (req, res) => {
     const data = await createCommentService(
       req.user.id,
       req.params.postId,
-      req.body.text
+      req.body.text,
     );
     res.status(201).json(data);
   } catch (err) {
@@ -87,12 +88,15 @@ const createComment = async (req, res) => {
 
 const updateComment = async (req, res) => {
   try {
-    const data = await updateCommentService(
+    const comment = await updateCommentService(
       req.user,
       req.params.commentId,
-      req.body.text
+      req.body.text,
     );
-    res.json(data);
+    res.status(200).json({
+      message: "Comment updated successfully",
+      comment 
+    });
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
@@ -100,10 +104,7 @@ const updateComment = async (req, res) => {
 
 const deleteComment = async (req, res) => {
   try {
-    const data = await deleteCommentService(
-      req.user,
-      req.params.commentId
-    );
+    const data = await deleteCommentService(req.user, req.params.commentId);
     res.json(data);
   } catch (err) {
     res.status(400).json({ message: err.message });
@@ -125,7 +126,7 @@ const updatePostStatus = async (req, res) => {
   try {
     const data = await updatePostStatusService(
       req.params.postId,
-      req.body.status
+      req.body.status,
     );
     res.json(data);
   } catch (err) {

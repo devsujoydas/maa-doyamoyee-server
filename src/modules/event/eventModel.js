@@ -24,9 +24,8 @@ const EventSchema = new mongoose.Schema(
 );
 
 // 🔥 auto upcoming
-EventSchema.pre("save", function (next) {
+EventSchema.pre("save", function () {
   this.upcoming = new Date(this.eventDate) > new Date();
-  next();
 });
 
 module.exports = mongoose.model("Event", EventSchema);

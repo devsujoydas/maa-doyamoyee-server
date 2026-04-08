@@ -17,7 +17,7 @@ const createEventService = async (userId, body, file) => {
 
   if (file) {
     const result = await uploadImageToCloudinary(file.buffer, "events");
-    image = result;
+    image = result; 
   }
 
   const event = await Event.create({

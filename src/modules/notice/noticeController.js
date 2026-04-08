@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const {
   getNoticesService,
   getNoticeService,
@@ -19,78 +20,46 @@ const getNotices = async (req, res) => {
 // GET ONE
 const getNotice = async (req, res) => {
   try {
-    const data = await getNoticeService(req.params.id);
-    res.status(200).json(data);
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) return res.status(400).json({ message: "Invalid ID" });
+    const notice = await getNoticeService(req.params.id);
+    res.status(200).json(notice);
   } catch (err) {
-    if (err.message === "NOTICE_NOT_FOUND") {
-      return res.status(404).json({ message: "Notice not found" });
-    }
-    res.status(500).json({ message: err.message });
+    res.status(err.message === "NOTICE_NOT_FOUND" ? 404 : 500).json({ message: err.message });
   }
 };
 
 // CREATE
 const createNotice = async (req, res) => {
   try {
-    const data = await createNoticeService(req.user.id, req.body);
-
-    res.status(201).json({
-      message: "Notice created successfully",
-      notice: data,
-    });
+    const notice = await createNoticeService(req.user.id, req.body);
+    res.status(201).json({ message: "Notice created", notice });
   } catch (err) {
-    if (err.message === "REQUIRED_FIELDS_MISSING") {
-      return res.status(400).json({
-        message: "Title & Description required",
-      });
-    }
-    if (err.message === "INVALID_DATE") {
-      return res.status(400).json({
-        message: "Invalid event date",
-      });
-    }
-    res.status(500).json({ message: err.message });
+    const status = ["REQUIRED_FIELDS_MISSING","INVALID_DATE","INVALID_TIME"].includes(err.message) ? 400 : 500;
+    res.status(status).json({ message: err.message });
   }
 };
 
 // UPDATE
 const updateNotice = async (req, res) => {
   try {
-    const data = await updateNoticeService(
-      req.params.id,
-      req.body
-    );
-
-    res.status(200).json({
-      message: "Notice updated successfully",
-      notice: data,
-    });
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) return res.status(400).json({ message: "Invalid ID" });
+    const notice = await updateNoticeService(req.params.id, req.body);
+    res.status(200).json({ message: "Notice updated", notice });
   } catch (err) {
-    if (err.message === "NOTICE_NOT_FOUND") {
-      return res.status(404).json({ message: "Notice not found" });
-    }
-    res.status(400).json({ message: err.message });
+    const status = ["NOTICE_NOT_FOUND"].includes(err.message) ? 404 : ["INVALID_DATE","INVALID_TIME"].includes(err.message) ? 400 : 500;
+    res.status(status).json({ message: err.message });
   }
 };
 
 // DELETE
 const deleteNotice = async (req, res) => {
   try {
-    const data = await deleteNoticeService(req.params.id);
-
-    res.status(200).json(data);
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) return res.status(400).json({ message: "Invalid ID" });
+    const result = await deleteNoticeService(req.params.id);
+    res.status(200).json(result);
   } catch (err) {
-    if (err.message === "NOTICE_NOT_FOUND") {
-      return res.status(404).json({ message: "Notice not found" });
-    }
-    res.status(500).json({ message: err.message });
+    res.status(err.message === "NOTICE_NOT_FOUND" ? 404 : 500).json({ message: err.message });
   }
 };
 
-module.exports = {
-  getNotices,
-  getNotice,
-  createNotice,
-  updateNotice,
-  deleteNotice,
-};
+module.exports = { getNotices, getNotice, createNotice, updateNotice, deleteNotice };

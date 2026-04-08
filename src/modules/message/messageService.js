@@ -1,6 +1,6 @@
 const Message = require("./messageModel");
 
-// CREATE MESSAGE
+// CREATE
 const createMessageService = async (data) => {
   const { name, email, message } = data;
 
@@ -8,33 +8,36 @@ const createMessageService = async (data) => {
     throw new Error("REQUIRED_FIELDS_MISSING");
   }
 
-  const newMessage = await Message.create(data);
-  return newMessage;
+  return await Message.create(data);
 };
 
-// GET ALL MESSAGES
-const getMessagesService = async () => {
-  const messages = await Message.find().sort({ createdAt: -1 });
+// GET ALL (search + filter)
+const getMessagesService = async (query) => {
+  const { search, status } = query;
+
+  let filter = {};
+
+  if (search) {
+    filter.$or = [
+      { name: { $regex: search, $options: "i" } },
+      { email: { $regex: search, $options: "i" } },
+      { message: { $regex: search, $options: "i" } },
+    ];
+  }
+
+  if (status === "read") filter.isRead = true;
+  if (status === "unread") filter.isRead = false;
+
+  const messages = await Message.find(filter).sort({ createdAt: -1 });
+
   return { total: messages.length, messages };
 };
 
-// UPDATE MESSAGE
-const updateMessageService = async (id, data) => {
-  const msg = await Message.findById(id);
-  if (!msg) throw new Error("MESSAGE_NOT_FOUND");
-
-  Object.assign(msg, data);
-  await msg.save();
-
-  return msg;
-};
-
-// DELETE MESSAGE
+// DELETE
 const deleteMessageService = async (id) => {
   const msg = await Message.findByIdAndDelete(id);
   if (!msg) throw new Error("MESSAGE_NOT_FOUND");
-
-  return { message: "Message deleted successfully" };
+  return { message: "Deleted successfully" };
 };
 
 // MARK READ
@@ -44,7 +47,6 @@ const markReadService = async (id) => {
 
   msg.isRead = true;
   await msg.save();
-
   return msg;
 };
 
@@ -55,6 +57,18 @@ const markUnreadService = async (id) => {
 
   msg.isRead = false;
   await msg.save();
+  return msg;
+};
+
+// REPLY
+const sendReplyService = async (id, replyText) => {
+  const msg = await Message.findById(id);
+  if (!msg) throw new Error("MESSAGE_NOT_FOUND");
+
+  msg.replies.push({ message: replyText });
+  msg.isRead = true;
+
+  await msg.save();
 
   return msg;
 };
@@ -62,8 +76,8 @@ const markUnreadService = async (id) => {
 module.exports = {
   createMessageService,
   getMessagesService,
-  updateMessageService,
   deleteMessageService,
   markReadService,
   markUnreadService,
+  sendReplyService,
 };

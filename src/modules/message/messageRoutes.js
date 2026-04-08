@@ -5,22 +5,22 @@ const isAdmin = require("../../middlewares/isAdmin");
 const {
   createMessage,
   getMessages,
-  updateMessage,
   deleteMessage,
   markRead,
   markUnread,
+  sendReply,
 } = require("./messageController");
 
 // PUBLIC
 router.post("/", createMessage);
 
-// ADMIN ONLY
+// ADMIN
 router.get("/", isAdmin, getMessages);
-router.put("/:id", isAdmin, updateMessage);
 router.delete("/:id", isAdmin, deleteMessage);
 
-// MARK READ / UNREAD
 router.patch("/:id/read", isAdmin, markRead);
 router.patch("/:id/unread", isAdmin, markUnread);
+
+router.post("/:id/reply", isAdmin, sendReply);
 
 module.exports = router;

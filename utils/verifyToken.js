@@ -1,28 +1,36 @@
 const jwt = require("jsonwebtoken");
-
 const User = require("../src/modules/user/userModel");
 const { JWT_SECRET } = require("../src/configs/config");
 
 const verifyToken = async (req) => {
   const authHeader = req.headers.authorization;
-  if (!authHeader?.startsWith("Bearer ")) {
+
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return {
-      error: { status: 401, message: "Unauthorized access, Please Sign In!" },
+      error: { status: 401, message: "Unauthorized! No token provided." },
     };
   }
 
   try {
     const token = authHeader.split(" ")[1];
-    const decoded = jwt.verify(token, JWT_SECRET);
-    const user = await User.findById(decoded.id).select("_id email");
+
+    const decodedToken = jwt.verify(token, JWT_SECRET);
+
+    // 🔥 IMPORTANT: include role
+    const user = await User.findById(decodedToken.id).select(
+      "_id name email role"
+    );
 
     if (!user) {
-      return { error: { status: 404, message: "USER NOT FOUND" } };
+      return {
+        error: { status: 404, message: "USER NOT FOUND" },
+      };
     }
-    return { decoded };
+
+    return { decoded: user }; // return full user
   } catch (error) {
     return {
-      error: { status: 403, message: "Unauthorized access, Please Sign In!" },
+      error: { status: 403, message: "Invalid or expired token" },
     };
   }
 };

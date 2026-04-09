@@ -1,74 +1,91 @@
 const {
-  getAllGalleryService,
   createGalleryService,
   updateGalleryService,
   deleteGalleryService,
+  getAllGalleryService,
+  getGalleryByIdService,
 } = require("./galleryService");
-
-// GET ALL
-const getAllGallery = async (req, res) => {
-  try {
-    const data = await getAllGalleryService(req.query);
-    res.json(data);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};
 
 // CREATE
 const createGallery = async (req, res) => {
   try {
-    const data = await createGalleryService(
-      req.user.id,
-      req.body,
-      req.file
-    );
+    const { title, description, eventDate } = req.body;
+    const file = req.file;
 
-    res.status(201).json({
-      message: "Image uploaded successfully",
-      gallery: data,
+    if (!file) return res.status(400).json({ message: "Image is required" });
+
+
+    const gallery = await createGalleryService({
+      fileBuffer: file.buffer,
+      folder: "temple-gallery",
+      title,
+      description,
+      eventDate,
     });
+
+    res.status(201).json({ success: true, data: gallery });
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    res.status(500).json({ success: false, message: err.message });
   }
 };
 
 // UPDATE
 const updateGallery = async (req, res) => {
   try {
-    const data = await updateGalleryService(
-      req.user,
-      req.params.id,
-      req.body,
-      req.file
-    );
+    const { id } = req.params;
+    const { title, description, eventDate } = req.body;
+    const file = req.file;
 
-    res.json({
-      message: "Gallery updated successfully",
-      gallery: data,
+    const gallery = await updateGalleryService(id, {
+      title,
+      description,
+      eventDate,
+      fileBuffer: file ? file.buffer : null,
+      folder: "temple-gallery",
     });
+
+    res.status(200).json({ success: true, data: gallery });
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    res.status(500).json({ success: false, message: err.message });
   }
 };
 
 // DELETE
 const deleteGallery = async (req, res) => {
   try {
-    const data = await deleteGalleryService(
-      req.user,
-      req.params.id
-    );
-
-    res.json(data);
+    const { id } = req.params;
+    await deleteGalleryService(id);
+    res.status(200).json({ success: true, message: "Gallery deleted" });
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+// GET ALL
+const getAllGallery = async (req, res) => {
+  try {
+    const galleries = await getAllGalleryService();
+    res.status(200).json({ success: true, data: galleries });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+// GET ONE
+const getGalleryById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const gallery = await getGalleryByIdService(id);
+    res.status(200).json({ success: true, data: gallery });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
   }
 };
 
 module.exports = {
-  getAllGallery,
   createGallery,
   updateGallery,
   deleteGallery,
+  getAllGallery,
+  getGalleryById,
 };

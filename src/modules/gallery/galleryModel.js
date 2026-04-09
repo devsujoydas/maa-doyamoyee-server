@@ -2,63 +2,27 @@ const mongoose = require("mongoose");
 
 const GallerySchema = new mongoose.Schema(
   {
-    title: { type: String, required: true, trim: true, maxlength: 200 },
-
-    image: {
+    title: { type: String, required: true, trim: true },
+    description: { type: String, trim: true },
+    img: {
       url: { type: String, required: true },
       publicId: { type: String, required: true },
     },
+    eventDate: { type: Date, default: null },
 
-    altText: { type: String, default: "" },
+    // Optional fields
+    location: { type: String, trim: true },
+    author: { type: String, trim: true, default: "Anonymous" },
+    tags: { type: [String], default: [] },
+    isFeatured: { type: Boolean, default: false },
+    uploadedAt: { type: Date, default: Date.now },
 
-    category: {
-      type: String,
-      enum: ["puja", "festival", "daily", "event", "temple"],
-      default: "event",
-    },
-
-    status: {
-      type: String,
-      enum: ["new", "old"],
-      default: "new",
-    },
-
-    isShow: {
-      type: String,
-      enum: ["show", "hidden"],
-      default: "hidden",
-    },
-
-    location: {
-      type: String,
-      default: "Jamalpur Sri Sri Ri Doyamoyee Temple",
-    },
-
-    author: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-    },
+    // SEO
+    altText: { type: String, trim: true },
+    metaTitle: { type: String, trim: true },
+    metaDescription: { type: String, trim: true },
   },
-  { timestamps: true },
+  { timestamps: true }
 );
 
-// 🔥 auto altText
-GallerySchema.pre("save", function (next) {
-  if (!this.altText || !this.altText.trim()) {
-    const categoryMap = {
-      puja: "Puja ceremony",
-      festival: "Festival celebration",
-      daily: "Daily temple activity",
-      event: "Temple event",
-      temple: "Temple",
-    };
-
-    this.altText = `${this.title} - ${
-      categoryMap[this.category] || "Temple event"
-    } at ${this.location}`;
-  }
-  next();
-});
-
-module.exports = mongoose.model("Gallery", GallerySchema);
+module.exports = mongoose.model("TempleGallery", GallerySchema);

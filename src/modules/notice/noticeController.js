@@ -1,65 +1,92 @@
-const mongoose = require("mongoose");
 const {
-  getNoticesService,
-  getNoticeService,
+  getAllNoticesService,
+  getNoticeByIdService,
   createNoticeService,
-  updateNoticeService,
-  deleteNoticeService,
+  updateNoticeByIdService,
+  deleteNoticeByIdService,
+  togglePinByIdService,
+  toggleStatusByIdService,
 } = require("./noticeService");
 
-// GET ALL
 const getNotices = async (req, res) => {
   try {
-    const data = await getNoticesService(req.query);
-    res.status(200).json(data);
+    const notices = await getAllNoticesService();
+    res.json(notices);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 };
 
-// GET ONE
 const getNotice = async (req, res) => {
   try {
-    if (!mongoose.Types.ObjectId.isValid(req.params.id)) return res.status(400).json({ message: "Invalid ID" });
-    const notice = await getNoticeService(req.params.id);
-    res.status(200).json(notice);
+    const notice = await getNoticeByIdService(req.params.id);
+    res.json(notice);
   } catch (err) {
-    res.status(err.message === "NOTICE_NOT_FOUND" ? 404 : 500).json({ message: err.message });
+    if (err.message === "Notice not found")
+      return res.status(404).json({ message: err.message });
+    res.status(500).json({ message: err.message });
   }
 };
 
-// CREATE
 const createNotice = async (req, res) => {
   try {
-    const notice = await createNoticeService(req.user.id, req.body);
-    res.status(201).json({ message: "Notice created", notice });
+    const notice = await createNoticeService(req.body);
+    res.status(201).json(notice);
   } catch (err) {
-    const status = ["REQUIRED_FIELDS_MISSING","INVALID_DATE","INVALID_TIME"].includes(err.message) ? 400 : 500;
-    res.status(status).json({ message: err.message });
+    res.status(400).json({ message: err.message });
   }
 };
 
-// UPDATE
 const updateNotice = async (req, res) => {
   try {
-    if (!mongoose.Types.ObjectId.isValid(req.params.id)) return res.status(400).json({ message: "Invalid ID" });
-    const notice = await updateNoticeService(req.params.id, req.body);
-    res.status(200).json({ message: "Notice updated", notice });
+    const notice = await updateNoticeByIdService(req.params.id, req.body);
+    res.json(notice);
   } catch (err) {
-    const status = ["NOTICE_NOT_FOUND"].includes(err.message) ? 404 : ["INVALID_DATE","INVALID_TIME"].includes(err.message) ? 400 : 500;
-    res.status(status).json({ message: err.message });
+    if (err.message === "Notice not found")
+      return res.status(404).json({ message: err.message });
+    res.status(400).json({ message: err.message });
   }
 };
 
-// DELETE
 const deleteNotice = async (req, res) => {
   try {
-    if (!mongoose.Types.ObjectId.isValid(req.params.id)) return res.status(400).json({ message: "Invalid ID" });
-    const result = await deleteNoticeService(req.params.id);
-    res.status(200).json(result);
+    const result = await deleteNoticeByIdService(req.params.id);
+    res.json(result);
   } catch (err) {
-    res.status(err.message === "NOTICE_NOT_FOUND" ? 404 : 500).json({ message: err.message });
+    if (err.message === "Notice not found")
+      return res.status(404).json({ message: err.message });
+    res.status(500).json({ message: err.message });
   }
 };
 
-module.exports = { getNotices, getNotice, createNotice, updateNotice, deleteNotice };
+const togglePin = async (req, res) => {
+  try {
+    const notice = await togglePinByIdService(req.params.id);
+    res.json(notice);
+  } catch (err) {
+    if (err.message === "Notice not found")
+      return res.status(404).json({ message: err.message });
+    res.status(500).json({ message: err.message });
+  }
+};
+
+const toggleStatus = async (req, res) => {
+  try {
+    const notice = await toggleStatusByIdService(req.params.id);
+    res.json(notice);
+  } catch (err) {
+    if (err.message === "Notice not found")
+      return res.status(404).json({ message: err.message });
+    res.status(500).json({ message: err.message });
+  }
+};
+
+module.exports = {
+  getNotices,
+  getNotice,
+  createNotice,
+  updateNotice,
+  deleteNotice,
+  togglePin,
+  toggleStatus,
+};

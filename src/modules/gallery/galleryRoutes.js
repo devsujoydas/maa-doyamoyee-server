@@ -1,24 +1,28 @@
 const express = require("express");
-const router = express.Router();
-
-const {
-  getAllGallery,
+const router = express.Router(); 
+const  {
   createGallery,
   updateGallery,
   deleteGallery,
+  getAllGallery,
+  getGalleryById,
 } = require("./galleryController");
 const upload = require("../../../utils/multer");
-const isAdmin = require("../../middlewares/isAdmin");
 
-// GET
+
+// GET ALL
 router.get("/", getAllGallery);
 
-// CREATE
-router.post("/", isAdmin, upload.single("image"), createGallery);
+// GET ONE
+router.get("/:id", getGalleryById);
 
-router.put("/:id", isAdmin, upload.single("image"), updateGallery);
+// CREATE
+router.post("/", upload.single("image"), createGallery);
+
+// UPDATE
+router.put("/:id", upload.single("image"), updateGallery);
 
 // DELETE
-router.delete("/:id", isAdmin, deleteGallery);
+router.delete("/:id", deleteGallery);
 
 module.exports = router;

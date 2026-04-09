@@ -1,22 +1,24 @@
-const router = require("express").Router();
-const isAdmin = require("../../middlewares/isAdmin"); 
+const express = require("express");
+const router = express.Router();
+const upload = require("../../../utils/multer");
 
 const {
   createDonation,
-  getDonations,
-  getDonation,
-  updateDonation,
+  getAllDonations,
   deleteDonation,
+  updateDonationStatus,
 } = require("./donationController");
-const upload = require("../../../utils/multer");
 
-// PUBLIC: submit donation with optional screenshot
-router.post("/", upload.single("paymentScreenshot"), createDonation);
+// CREATE donation with optional paymentProof
+router.post("/", upload.single("paymentProof"), createDonation);
 
-// ADMIN: manage donations
-router.get("/", isAdmin, getDonations);
-router.get("/:id", isAdmin, getDonation);
-router.put("/:id", isAdmin, upload.single("paymentScreenshot"), updateDonation);
-router.delete("/:id", isAdmin, deleteDonation);
+// GET all donations
+router.get("/", getAllDonations);
+
+// DELETE donation
+router.delete("/:id", deleteDonation);
+
+// PATCH status
+router.patch("/:id/status", updateDonationStatus);
 
 module.exports = router;

@@ -1,58 +1,66 @@
 const mongoose = require("mongoose");
 
+const BankPaymentSchema = new mongoose.Schema({
+  accountNumber: { type: String, required: true },
+  bankName: { type: String, required: true },
+  branchName: { type: String, required: true },
+  branchCode: { type: String, required: true },
+  swiftCode: { type: String },
+  routingNumber: { type: String },
+});
+
+const MobilePaymentSchema = new mongoose.Schema({
+  provider: {
+    type: String,
+    enum: ["Nagad", "Bkash", "Rocket", "TapTapSend"],
+    required: true,
+  },
+  senderNumber: { type: String, required: true },
+  transactionId: { type: String, required: true },
+});
+
+const PaymentProofSchema = new mongoose.Schema({
+  url: String,
+  publicId: String,
+});
+
 const DonationSchema = new mongoose.Schema(
   {
-    name: { type: String, required: true, trim: true },
-    email: { 
-      type: String, 
-      required: true, 
-      trim: true,
-      match: /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/,
-    },
-    phone: { type: String, trim: true },
+    accountName: { type: String, required: true },
+    email: { type: String, required: true },
+    phone: { type: String, required: true },
+    paymentAmount: { type: Number, required: true },
+    message: String,
 
-    donationAmount: { type: Number, required: true, min: 1 },
-    paymentScreenshot: { type: String }, 
-    optionalMessage: { type: String, trim: true },
-
-    paymentMethod: { 
-      type: String, 
-      enum: ["bank transfer", "mobile banking"], 
-      required: true 
+    paymentMethod: {
+      type: String,
+      enum: ["Bank", "MobileBanking"],
+      required: true,
     },
 
-    bankDetails: {
-      bankName: { type: String, trim: true },
-      branchName: { type: String, trim: true },
-      branchCode: { type: String, trim: true },
-      SWIFTCode: { type: String, trim: true },
-      routingNumber: { type: String, trim: true },
-      senderAccountNumber: { type: String, trim: true },
+    paymentProof: PaymentProofSchema,
+
+    bankPayment: {
+      type: BankPaymentSchema,
+      required: function () {
+        return this.paymentMethod === "Bank";
+      },
     },
 
-    mobileBankingDetails: {
-      selectMobileBanking: { type: String, enum: ["bkash", "nagad", "rocket"] },
-      senderMobileNumber: { type: String, trim: true },
-      transactionId: { type: String, trim: true, unique: true },
+    mobilePayment: {
+      type: MobilePaymentSchema,
+      required: function () {
+        return this.paymentMethod === "MobileBanking";
+      },
+    },
+
+    status: {
+      type: String,
+      enum: ["pending", "approved", "rejected"],
+      default: "pending",
     },
   },
   { timestamps: true }
 );
-
-// Validation before saving
-DonationSchema.pre("save", function (next) {
-  if (this.paymentMethod === "bank transfer") {
-    if (!this.bankDetails?.bankName || !this.bankDetails?.senderAccountNumber) {
-      return next(new Error("Bank details required for bank transfer"));
-    }
-  } else if (this.paymentMethod === "mobile banking") {
-    if (!this.mobileBankingDetails?.selectMobileBanking || 
-        !this.mobileBankingDetails?.transactionId ||
-        !this.mobileBankingDetails?.senderMobileNumber) {
-      return next(new Error("Mobile banking details required"));
-    }
-  }
-  next();
-});
 
 module.exports = mongoose.model("Donation", DonationSchema);

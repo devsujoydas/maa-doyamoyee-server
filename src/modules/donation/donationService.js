@@ -1,84 +1,65 @@
 const Donation = require("./donationModel");
-const { uploadImageToCloudinary } = require("../../../utils/uploadService");
+const {
+  uploadImageToCloudinary,
+  deleteImageFromCloudinary,
+} = require("../../../utils/uploadService");
 
+// CREATE
+const createDonationService = async ({ data, file }) => {
+  if (data.bankPayment) data.bankPayment = JSON.parse(data.bankPayment);
+  if (data.mobilePayment) data.mobilePayment = JSON.parse(data.mobilePayment);
 
-const createDonationService = async (req) => {
-  const {
-    name,
-    email,
-    phone,
-    donationAmount,
-    optionalMessage,
-    paymentMethod,
-    bankDetails,
-    mobileBankingDetails,
-  } = req.body;
-
-  if (!name || !email || !donationAmount || !paymentMethod) {
-    throw new Error("REQUIRED_FIELDS_MISSING");
-  }
-
-  let paymentScreenshotUrl;
-  if (req.file) {
-    const uploaded = await uploadImageToCloudinary(req.file.buffer, "donation_screenshots");
-    paymentScreenshotUrl = uploaded.url;
-  }
-
-  const donation = await Donation.create({
-    name,
-    email,
-    phone,
-    donationAmount,
-    paymentScreenshot: paymentScreenshotUrl,
-    optionalMessage,
-    paymentMethod,
-    bankDetails: paymentMethod === "bank transfer" ? bankDetails : undefined,
-    mobileBankingDetails: paymentMethod === "mobile banking" ? mobileBankingDetails : undefined,
-  });
-
-  return donation;
-};
-
-// GET ALL DONATIONS
-const getDonationsService = async () => {
-  const donations = await Donation.find().sort({ createdAt: -1 });
-  return { total: donations.length, donations };
-};
-
-// GET SINGLE DONATION
-const getDonationService = async (id) => {
-  const donation = await Donation.findById(id);
-  if (!donation) throw new Error("DONATION_NOT_FOUND");
-  return donation;
-};
-
-// UPDATE DONATION
-const updateDonationService = async (id, data, file) => {
-  const donation = await Donation.findById(id);
-  if (!donation) throw new Error("DONATION_NOT_FOUND");
+  let paymentProof = null;
 
   if (file) {
-    const uploaded = await uploadImageToCloudinary(file.buffer, "donation_screenshots");
-    data.paymentScreenshot = uploaded.url;
+    paymentProof = await uploadImageToCloudinary(file.buffer, "donations");
   }
 
-  Object.assign(donation, data);
-  await donation.save();
-  return donation;
+  return await Donation.create({
+    ...data,
+    paymentAmount: Number(data.paymentAmount),
+    paymentProof,
+    status: "pending",
+  });
 };
 
-// DELETE DONATION
-const deleteDonationService = async (id) => {
-  const donation = await Donation.findByIdAndDelete(id);
-  if (!donation) throw new Error("DONATION_NOT_FOUND");
+// GET ALL
+const getAllDonationsService = async () => {
+  return await Donation.find().sort({ createdAt: -1 });
+};
 
-  return { message: "Donation deleted successfully" };
+// DELETE
+const deleteDonationService = async (id) => {
+  const donation = await Donation.findById(id);
+  if (!donation) throw new Error("Donation not found");
+
+  if (donation.paymentProof?.publicId) {
+    await deleteImageFromCloudinary(donation.paymentProof.publicId);
+  }
+
+  await donation.deleteOne();
+};
+
+// UPDATE STATUS
+const updateDonationStatusService = async ({ id, status }) => {
+  if (!["pending", "approved", "rejected"].includes(status)) {
+    throw new Error("Invalid status");
+  }
+
+  const donation = await Donation.findByIdAndUpdate(
+    id,
+    { status },
+    { new: true }
+  );
+
+  if (!donation) throw new Error("Donation not found");
+
+  return donation;
 };
 
 module.exports = {
   createDonationService,
-  getDonationsService,
-  getDonationService,
-  updateDonationService,
+  getAllDonationsService,
   deleteDonationService,
+  updateDonationStatusService,
 };

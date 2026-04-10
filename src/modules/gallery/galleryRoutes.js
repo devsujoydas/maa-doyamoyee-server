@@ -8,6 +8,7 @@ const  {
   getGalleryById,
 } = require("./galleryController");
 const upload = require("../../../utils/multer");
+const authorizeRoles = require("../../middlewares/authorizeRoles");
 
 
 // GET ALL
@@ -17,12 +18,12 @@ router.get("/", getAllGallery);
 router.get("/:id", getGalleryById);
 
 // CREATE
-router.post("/", upload.single("image"), createGallery);
+router.post("/",authorizeRoles("admin", "moderator"), upload.single("image"), createGallery);
 
 // UPDATE
-router.put("/:id", upload.single("image"), updateGallery);
+router.put("/:id",authorizeRoles("admin", "moderator"), upload.single("image"), updateGallery);
 
 // DELETE
-router.delete("/:id", deleteGallery);
+router.delete("/:id",authorizeRoles("admin", "moderator"), deleteGallery);
 
 module.exports = router;

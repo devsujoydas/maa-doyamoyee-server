@@ -14,24 +14,20 @@ const {
   updatePostStatus,
 } = require("./postController");
 
-// } = require("./postModel")
-// } = require("./commentModel")
-// } = require("./postServices")
-
 const isVerifyUser = require("../../middlewares/verifyUser");
-const isAdmin = require("../../middlewares/isAdmin");
 const upload = require("../../../utils/multer");
+const authorizeRoles = require("../../middlewares/authorizeRoles");
 
 // POSTS
 router.get("/", getPosts);
 router.get("/:postId", getPost);
-
-router.post("/", isAdmin, upload.single("image"), createPost);
-router.put("/:postId", isAdmin, upload.single("image"), updatePost);
-router.delete("/:postId", isAdmin, deletePost);
-
 router.patch("/:postId/react", isVerifyUser, toggleReact);
-router.put("/post/:postId/status", isAdmin, updatePostStatus);
+
+router.post("/", authorizeRoles("admin"), upload.single("image"), createPost);
+router.put("/:postId", authorizeRoles("admin"), upload.single("image"), updatePost);
+router.delete("/:postId", authorizeRoles("admin"), deletePost);
+router.put("/post/:postId/status", authorizeRoles("admin"), updatePostStatus);
+
 
 // COMMENTS
 router.get("/:postId/comments", getComments);

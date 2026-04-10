@@ -49,7 +49,10 @@ const updateDonationStatusService = async ({ id, status }) => {
   const donation = await Donation.findByIdAndUpdate(
     id,
     { status },
-    { new: true }
+    { new: true },
+    {
+      returnDocument: "after",
+    },
   );
 
   if (!donation) throw new Error("Donation not found");

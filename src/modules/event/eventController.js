@@ -42,6 +42,7 @@ const getEvent = async (req, res) => {
 
 // UPDATE
 const updateEvent = async (req, res) => {
+  
   try {
     const data = await updateEventService(
       req.user,

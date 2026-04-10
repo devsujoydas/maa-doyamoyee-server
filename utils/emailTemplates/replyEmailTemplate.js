@@ -1,4 +1,4 @@
-const passwordResetTemplate = (resetUrl) => `
+const replyEmailTemplate = (message) => `
 <!DOCTYPE html>
 <html>
 <head>
@@ -15,42 +15,49 @@ const passwordResetTemplate = (resetUrl) => `
         <table width="480" cellpadding="0" cellspacing="0"
           style="background:#ffffff; border-radius:20px; overflow:hidden; box-shadow:0 10px 25px rgba(0,0,0,0.08);">
 
+          <!-- Header -->
           <tr>
             <td style="background:linear-gradient(135deg,#7c3aed,#2563eb); padding:30px; text-align:center; color:white;">
               <h1 style="margin:0; font-size:22px;">🔱 Maa Doyamoyee</h1>
               <p style="margin:6px 0 0; font-size:13px; opacity:0.9;">
-                Password Reset Request
+                Reply from Temple Support
               </p>
             </td>
           </tr>
 
+          <!-- Body -->
           <tr>
             <td style="padding:32px 28px; color:#374151; line-height:1.6;">
 
               <p>🙏 <strong>Namaskar,</strong></p>
 
-              <p>We received a request to reset your password.</p>
-
-              <div style="text-align:center; margin:30px 0;">
-                <a href="${resetUrl}"
-                  style="display:inline-block; background:#7c3aed; color:#fff; padding:14px 28px;
-                  border-radius:10px; text-decoration:none; font-weight:600;">
-                  Reset Password
-                </a>
-              </div>
-
-              <p style="font-size:13px; color:#6b7280;">
-                ⏳ Expires in <strong>10 minutes</strong>.
+              <p>
+                Thank you for contacting us. Here is our response:
               </p>
 
-              <p>🕉️ Stay safe,<br/><strong>Maa Doyamoyee Team</strong></p>
+              <!-- Message Box -->
+              <div style="margin:25px 0; padding:15px; background:#f9fafb; border-left:4px solid #7c3aed; border-radius:10px;">
+                <p style="margin:0; color:#111; font-size:15px;">
+                  ${message}
+                </p>
+              </div>
+
+              <p>
+                If you have more questions, feel free to contact us again.
+              </p>
+
+              <p style="margin-top:20px;">
+                🕉️ Stay blessed,<br/>
+                <strong>Maa Doyamoyee Team</strong>
+              </p>
 
             </td>
           </tr>
 
+          <!-- Footer -->
           <tr>
             <td style="background:#f3f4f6; text-align:center; padding:16px; font-size:12px; color:#9ca3af;">
-              © ${new Date().getFullYear()} Maa Doyamoyee.
+              © ${new Date().getFullYear()} Maa Doyamoyee. All rights reserved.
             </td>
           </tr>
 
@@ -64,4 +71,4 @@ const passwordResetTemplate = (resetUrl) => `
 </html>
 `;
 
-module.exports = passwordResetTemplate;
+module.exports = replyEmailTemplate;

@@ -1,4 +1,4 @@
- 
+const replyEmailTemplate = require("../../../utils/emailTemplates/replyEmailTemplate");
 const sendEmail = require("../../../utils/sendEmail");
 const {
   createMessageService,
@@ -73,7 +73,7 @@ const sendReply = async (req, res) => {
     await sendEmail(
       msg.email,
       "Reply from Maa Doyamoyee 🔱",
-      `<p>${message}</p>`
+      replyEmailTemplate(message),
     );
 
     res.status(200).json({ message: "Reply sent", data: msg });

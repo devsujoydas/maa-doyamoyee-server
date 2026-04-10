@@ -49,21 +49,54 @@ const getUsersProfileService = async (id) => {
 const updateProfileService = async (id, body) => {
   const update = {};
 
+  // basic
   if (body.name) update.name = body.name;
   if (body.bio !== undefined) update.bio = body.bio;
+  if (body.phone) update.phone = body.phone;
 
+  // username check
   if (body.username) {
     const exist = await User.findOne({
       username: body.username,
       _id: { $ne: id },
     });
+
     if (exist) throw new Error("USERNAME_EXISTS");
+
     update.username = body.username;
   }
 
-  const user = await User.findByIdAndUpdate(id, update, {
-    new: true,
-  }).select("-password -refreshToken");
+  // nested objects (IMPORTANT FIX)
+  if (body.addressInfo) {
+    update.addressInfo = {
+      address: body.addressInfo.address || "",
+      city: body.addressInfo.city || "",
+      state: body.addressInfo.state || "",
+      postalCode: body.addressInfo.postalCode || "",
+      country: body.addressInfo.country || "",
+    };
+  }
+
+  if (body.contactDetails) {
+    update.contactDetails = {
+      website: body.contactDetails.website || "",
+      facebook: body.contactDetails.facebook || "",
+      instagram: body.contactDetails.instagram || "",
+      youtube: body.contactDetails.youtube || "",
+      github: body.contactDetails.github || "",
+    };
+  }
+
+  const user = await User.findByIdAndUpdate(
+    id,
+    update,
+    {
+      new: true,
+    },
+    {
+      returnDocument: "after",
+    },
+  ).select("-password -refreshToken");
 
   return user;
 };
@@ -124,6 +157,8 @@ const requestVerifyUserService = async (email) => {
   const token = jwt.sign({ id: user._id }, JWT_SECRET, {
     expiresIn: "1d",
   });
+
+  console.log(user, email, token);
 
   const link = `${FRONTEND_URL}/verify-email?token=${token}`;
 

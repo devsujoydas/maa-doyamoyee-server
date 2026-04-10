@@ -94,7 +94,7 @@ const requestVerifyUser = async (req, res) => {
   }
 };
 
-const verifyUserToken = async (req, res) => {
+const  verifyUserToken = async (req, res) => {
   try {
     const message = await verifyUserTokenService(req.query.token);
     res.json({ message });

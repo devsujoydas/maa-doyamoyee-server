@@ -1,6 +1,5 @@
 const express = require("express");
 const router = express.Router();
-const isAdmin = require("../../middlewares/isAdmin");
 
 const {
   createMessage,
@@ -10,17 +9,18 @@ const {
   markUnread,
   sendReply,
 } = require("./messageController");
+const authorizeRoles = require("../../middlewares/authorizeRoles");
 
 // PUBLIC
 router.post("/", createMessage);
 
 // ADMIN
-router.get("/", isAdmin, getMessages);
-router.delete("/:id", isAdmin, deleteMessage);
+router.get("/", authorizeRoles("admin", "moderator"), getMessages);
+router.delete("/:id", authorizeRoles("admin", "moderator"), deleteMessage);
 
-router.patch("/:id/read", isAdmin, markRead);
-router.patch("/:id/unread", isAdmin, markUnread);
+router.patch("/:id/read", authorizeRoles("admin", "moderator"), markRead);
+router.patch("/:id/unread", authorizeRoles("admin", "moderator"), markUnread);
 
-router.post("/:id/reply", isAdmin, sendReply);
+router.post("/:id/reply", authorizeRoles("admin", "moderator"), sendReply);
 
 module.exports = router;

@@ -17,7 +17,7 @@ const createEventService = async (userId, body, file) => {
 
   if (file) {
     const result = await uploadImageToCloudinary(file.buffer, "events");
-    image = result; 
+    image = result;
   }
 
   const event = await Event.create({
@@ -62,13 +62,11 @@ const getEventService = async (id) => {
   return event;
 };
 
-// UPDATE
 const updateEventService = async (user, id, body, file) => {
   const event = await Event.findById(id);
   if (!event) throw new Error("EVENT_NOT_FOUND");
 
-  // 🔥 optional: only author বা admin update করতে পারবে
-  if (!event.author.equals(user.id) && user.role !== "admin") {
+  if (event.author.toString() !== user.id && user.role !== "admin") {
     throw new Error("UNAUTHORIZED");
   }
 
@@ -99,7 +97,7 @@ const deleteEventService = async (user, id) => {
   if (!event) throw new Error("EVENT_NOT_FOUND");
 
   // 🔥 authorization
-  if (!event.author.equals(user.id) && user.role !== "admin") {
+  if (event.author.toString() !== user.id && user.role !== "admin") {
     throw new Error("UNAUTHORIZED");
   }
 

@@ -23,7 +23,7 @@ const requestPasswordResetService = async (email) => {
 
   await sendEmail(
     email,
-    "🔐 Reset Your Password - Maa Doyamoyee",
+    "🔐 Reset Your Password - Maa Doyamoyee 🔱",
     passwordResetTemplate(resetUrl),
   );
 
@@ -66,11 +66,11 @@ const resetPasswordService = async (token, newPassword, confirmNewPassword) => {
 const changePasswordService = async (req) => {
   const { currentPassword, newPassword, confirmNewPassword } = req.body;
 
-  // ✅ Trim all inputs
   const current = currentPassword?.trim();
   const np = newPassword?.trim();
   const confirm = confirmNewPassword?.trim();
 
+  // basic check only
   if (!current || !np || !confirm) {
     throw new Error("ALL_FIELDS_REQUIRED");
   }
@@ -86,24 +86,22 @@ const changePasswordService = async (req) => {
   const user = await User.findById(req.user.id);
   if (!user) throw new Error("USER_NOT_FOUND");
 
-  // Check current password
   const isMatch = await bcrypt.compare(current, user.password);
   if (!isMatch) {
     throw new Error("CURRENT_PASSWORD_INCORRECT");
   }
 
-  // Prevent reuse
   const isSame = await bcrypt.compare(np, user.password);
   if (isSame) {
     throw new Error("NEW_PASSWORD_MUST_BE_DIFFERENT");
   }
 
-  // Hash & save
   user.password = await bcrypt.hash(np, 10);
   await user.save();
 
   return "Password updated successfully";
 };
+
 
 module.exports = {
   requestPasswordResetService,

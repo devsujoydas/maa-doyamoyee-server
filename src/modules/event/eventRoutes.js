@@ -8,20 +8,19 @@ const {
   updateEvent,
   deleteEvent,
 } = require("./eventController");
-const isAdmin = require("../../middlewares/isAdmin");
 const upload = require("../../../utils/multer");
+const authorizeRoles = require("../../middlewares/authorizeRoles");
 
-// CREATE
-router.post("/", isAdmin, upload.single("image"), createEvent);
 
 // READ
 router.get("/", getEvents);
 router.get("/:id", getEvent);
 
+// CREATE
+router.post("/", authorizeRoles("admin", "moderator"), upload.single("image"), createEvent);
 // UPDATE
-router.put("/:id", isAdmin, upload.single("image"), updateEvent);
-
+router.put("/:id", authorizeRoles("admin", "moderator"), upload.single("image"), updateEvent); 
 // DELETE
-router.delete("/:id", isAdmin, deleteEvent);
+router.delete("/:id", authorizeRoles("admin", "moderator"), deleteEvent);
 
 module.exports = router;

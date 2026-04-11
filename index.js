@@ -20,14 +20,11 @@ app.use(cookieParser());
 
 app.use(
   cors({
-    origin: ["http://localhost:5173", "https://maa-doyamoyee.vercel.app"],
+    origin: ["https://maa-doyamoyee.vercel.app", "http://localhost:5173"],
     credentials: true,
   }),
 );
 
-// -----------------------------
-// SAFE DB CONNECT (IMPORTANT)
-// -----------------------------
 let isConnected = false;
 
 const dbConnect = async () => {
@@ -37,7 +34,6 @@ const dbConnect = async () => {
   }
 };
 
-// middleware: every request ensures DB
 app.use(async (req, res, next) => {
   try {
     await dbConnect();
@@ -48,7 +44,7 @@ app.use(async (req, res, next) => {
   }
 });
 
-// routes
+
 app.get("/", (req, res) =>
   res.send("Maa Doyamoyee Connected With Server & MongoDB"),
 );
@@ -64,8 +60,8 @@ app.use("/api/v1/messages", messageRoutes);
 app.use("/api/v1/donation", donationRoutes);
 
 //  NO app.listen in Vercel
-app.listen(5000, () => {
-  console.log(`Mongoose Server running on port 5000`);
-});
+// app.listen(5000, () => {
+//   console.log(`Mongoose Server running on port 5000`);
+// });
 
 module.exports = app;

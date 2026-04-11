@@ -20,7 +20,7 @@ const {
 const authorizeRoles = require("../../middlewares/authorizeRoles");
 
 // Public
-router.get("/", getUsers);
+router.get("/", authorizeRoles("admin", "moderator"), getUsers);
 router.get("/profile/:userId", getUsersProfile);
 
 // Private

@@ -101,14 +101,12 @@ const sendVerificationEmailService = async (userId) => {
 
   if (user.isVerified) return "Email already verified";
 
-  // Create JWT token for email verification
   const token = jwt.sign({ id: user._id, type: "verify" }, JWT_SECRET, {
     expiresIn: "10m",
   });
 
   const verifyUrl = `${FRONTEND_URL}/profile?token=${token}`;
 
-  // Send email
   await sendEmail(user.email, "Verify Your Email", verifyEmailTemplate(verifyUrl));
 
   return "Verification email sent";

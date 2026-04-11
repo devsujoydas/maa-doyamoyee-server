@@ -87,21 +87,13 @@ const updateProfileService = async (id, body) => {
     };
   }
 
-  const user = await User.findByIdAndUpdate(
-    id,
-    update,
-    {
-      new: true,
-    },
-    {
-      returnDocument: "after",
-    },
-  ).select("-password -refreshToken");
+  const user = await User.findByIdAndUpdate(id, update, {
+    returnDocument: "after",
+  }).select("-password -refreshToken");
 
   return user;
 };
 
-// ---------------- IMAGE ----------------
 const updateUserImageService = async (userId, file, field, folder) => {
   if (!file) throw new Error("NO_FILE");
 
@@ -126,12 +118,10 @@ const updateUserImageService = async (userId, file, field, folder) => {
   return user;
 };
 
-// ---------------- DELETE ----------------
 const deleteProfileService = async (id) => {
   const user = await User.findById(id);
   if (!user) throw new Error("USER_NOT_FOUND");
 
-  // delete images
   if (user.profileImage?.publicId) {
     await deleteImageFromCloudinary(user.profileImage.publicId);
   }
@@ -147,7 +137,6 @@ const deleteProfileService = async (id) => {
   return { success: true };
 };
 
-// ---------------- VERIFY ----------------
 const requestVerifyUserService = async (email) => {
   if (!email) throw new Error("EMAIL_REQUIRED");
 
@@ -158,9 +147,7 @@ const requestVerifyUserService = async (email) => {
     expiresIn: "1d",
   });
 
-  console.log(user, email, token);
-
-  const link = `${FRONTEND_URL}/verify-email?token=${token}`;
+  const link = `${FRONTEND_URL}/profile?token=${token}`;
 
   await sendEmail(email, "Verify Email", verifyEmailTemplate(link));
 
@@ -179,6 +166,53 @@ const verifyUserTokenService = async (token) => {
   return "Email verified";
 };
 
+const deleteUserbyAdminService = async (id) => {
+  const user = await User.findById(id);
+  if (!user) throw new Error("USER_NOT_FOUND");
+
+  if (user.profileImage?.publicId) {
+    await deleteImageFromCloudinary(user.profileImage.publicId);
+  }
+
+  if (user.coverImage?.publicId) {
+    await deleteImageFromCloudinary(user.coverImage.publicId);
+  }
+
+  await User.deleteOne({ _id: id });
+  await Post.deleteMany({ author: id });
+  await Comment.deleteMany({ author: id });
+
+  return {
+    message: "User deleted successfully",
+  };
+};
+
+const changeUserRoleByAdminService = async (userId, newRole) => {
+  const validRoles = ["admin", "moderator", "user"];
+
+  if (!validRoles.includes(newRole)) {
+    throw { message: "INVALID_ROLE", code: 400 };
+  }
+
+  const user = await User.findById(userId);
+  if (!user) throw { message: "USER_NOT_FOUND", code: 404 };
+
+  const previousRole = user.role;
+
+  // ❗ same role হলে update না করা
+  if (previousRole === newRole) {
+    throw { message: "USER_ALREADY_HAS_THIS_ROLE", code: 400 };
+  }
+
+  user.role = newRole;
+  await user.save();
+
+  return {
+    ...user.toObject(),
+    previousRole,
+  };
+};
+
 module.exports = {
   getUsersService,
   getMyProfileService,
@@ -188,4 +222,6 @@ module.exports = {
   updateUserImageService,
   requestVerifyUserService,
   verifyUserTokenService,
+  deleteUserbyAdminService,
+  changeUserRoleByAdminService,
 };

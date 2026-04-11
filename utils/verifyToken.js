@@ -32,7 +32,7 @@ const verifyToken = async (req) => {
     return {
       error: { status: 403, message: "Invalid or expired token" },
     };
-  }
+  } 
 };
 
 module.exports = verifyToken;

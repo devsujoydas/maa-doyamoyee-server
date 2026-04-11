@@ -34,15 +34,11 @@ const signInUser = async (req, res) => {
 const googleLogin = async (req, res) => {
   try {
     const { firebaseToken } = req.body;
-
-    // ✅ Verify firebase token
     const decoded = await admin.auth().verifyIdToken(firebaseToken);
 
     const { email, name, picture, uid } = decoded;
 
     let user = await User.findOne({ email });
-
-    // ✅ Create user if not exists
     if (!user) {
       user = await User.create({
         name,
@@ -97,7 +93,6 @@ const sendVerificationEmail = async (req, res, next) => {
   }
 };
 
-// Verify email controller
 const verifyEmail = async (req, res, next) => {
   try {
     const token = req.query.token;

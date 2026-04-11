@@ -63,11 +63,16 @@ const updateGalleryService = async (
 
 const deleteGalleryService = async (id) => {
   const gallery = await Gallery.findById(id);
-  if (!gallery) throw new Error("Gallery not found");
+
+  if (!gallery) {
+    throw new Error("Gallery not found");
+  }
 
   await deleteImageFromCloudinary(gallery.img.publicId);
-  await gallery.remove();
-  return gallery;
+
+  const deletedGallery = await Gallery.findByIdAndDelete(id);
+
+  return deletedGallery;
 };
 
 const getAllGalleryService = async () => {

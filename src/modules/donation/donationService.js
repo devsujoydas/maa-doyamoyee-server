@@ -4,7 +4,6 @@ const {
   deleteImageFromCloudinary,
 } = require("../../../utils/uploadService");
 
-// CREATE
 const createDonationService = async ({ data, file }) => {
   if (data.bankPayment) data.bankPayment = JSON.parse(data.bankPayment);
   if (data.mobilePayment) data.mobilePayment = JSON.parse(data.mobilePayment);
@@ -23,12 +22,10 @@ const createDonationService = async ({ data, file }) => {
   });
 };
 
-// GET ALL
 const getAllDonationsService = async () => {
   return await Donation.find().sort({ createdAt: -1 });
 };
 
-// DELETE
 const deleteDonationService = async (id) => {
   const donation = await Donation.findById(id);
   if (!donation) throw new Error("Donation not found");
@@ -40,7 +37,6 @@ const deleteDonationService = async (id) => {
   await donation.deleteOne();
 };
 
-// UPDATE STATUS
 const updateDonationStatusService = async ({ id, status }) => {
   if (!["pending", "approved", "rejected"].includes(status)) {
     throw new Error("Invalid status");
@@ -49,7 +45,7 @@ const updateDonationStatusService = async ({ id, status }) => {
   const donation = await Donation.findByIdAndUpdate(
     id,
     { status },
-    { new: true },
+
     {
       returnDocument: "after",
     },

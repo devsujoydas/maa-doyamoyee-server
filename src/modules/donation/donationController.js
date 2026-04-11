@@ -5,7 +5,7 @@ const {
   updateDonationStatusService,
 } = require("./donationService");
 
-// CREATE
+
 const createDonation = async (req, res) => {
   try {
     const donation = await createDonationService({
@@ -19,7 +19,7 @@ const createDonation = async (req, res) => {
   }
 };
 
-// GET ALL
+
 const getAllDonations = async (req, res) => {
   try {
     const donations = await getAllDonationsService();
@@ -29,7 +29,7 @@ const getAllDonations = async (req, res) => {
   }
 };
 
-// DELETE
+
 const deleteDonation = async (req, res) => {
   try {
     await deleteDonationService(req.params.id);
@@ -39,7 +39,7 @@ const deleteDonation = async (req, res) => {
   }
 };
 
-// STATUS UPDATE
+
 const updateDonationStatus = async (req, res) => {
   try {
     const donation = await updateDonationStatusService({

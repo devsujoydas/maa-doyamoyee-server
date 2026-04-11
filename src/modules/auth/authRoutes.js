@@ -9,6 +9,7 @@ const {
   sendVerificationEmail,
   verifyEmail,
 } = require("./authController");
+
 const isVerifyUser = require("../../middlewares/verifyUser");
 
 router.post("/send-verification", isVerifyUser, sendVerificationEmail);
@@ -20,4 +21,5 @@ router.post("/logout", isVerifyUser, logOutUser);
 router.get("/refresh", refreshAccessToken);
 
 router.post("/google", googleLogin);
+
 module.exports = router;

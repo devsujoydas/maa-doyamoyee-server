@@ -26,7 +26,13 @@ router.patch("/:postId/react", isVerifyUser, toggleReact);
 router.post("/", authorizeRoles("admin"), upload.single("image"), createPost);
 router.put("/:postId", authorizeRoles("admin"), upload.single("image"), updatePost);
 router.delete("/:postId", authorizeRoles("admin"), deletePost);
+
+
+
+// admin access
 router.put("/post/:postId/status", authorizeRoles("admin"), updatePostStatus);
+
+
 
 
 // COMMENTS

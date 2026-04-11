@@ -6,7 +6,7 @@ const {
   deleteEventService,
 } = require("./eventService");
 
-// CREATE
+
 const createEvent = async (req, res) => {
   try {
     const data = await createEventService(req.user.id, req.body, req.file);
@@ -20,7 +20,7 @@ const createEvent = async (req, res) => {
   }
 };
 
-// GET ALL
+
 const getEvents = async (req, res) => {
   try {
     const data = await getEventsService(req.query);

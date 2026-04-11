@@ -7,6 +7,8 @@ const {
   updateUserImageService,
   requestVerifyUserService,
   verifyUserTokenService,
+  deleteUserbyAdminService,
+  changeUserRoleByAdminService,
 } = require("./userServices");
 
 // ---------------- BASIC ----------------
@@ -84,22 +86,44 @@ const uploadCoverPhoto = async (req, res) => {
   }
 };
 
-// ---------------- VERIFY ----------------
 const requestVerifyUser = async (req, res) => {
   try {
-    const message = await requestVerifyUserService(req.body.email);
+    const message = await requestVerifyUserService(req.user.email);
     res.json({ message });
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
 };
 
-const  verifyUserToken = async (req, res) => {
+const verifyUserToken = async (req, res) => {
   try {
     const message = await verifyUserTokenService(req.query.token);
     res.json({ message });
   } catch (err) {
     res.status(400).json({ message: err.message });
+  }
+};
+
+const deleteUserbyAdmin = async (req, res) => {
+  try {
+    const result = await deleteUserbyAdminService(req.params.userId);
+    res.status(200).json(result);
+  } catch (err) {
+    res.status(err.code || 400).json({ message: err.message });
+  }
+};
+
+const changeUserRoleByAdmin = async (req, res) => {
+  try {
+    const { role } = req.body;
+    const userId = req.params.userId;
+    const user = await changeUserRoleByAdminService(userId, role);
+    res.status(200).json({
+      message: `Role changed from ${user.previousRole} to ${user.role}`,
+      user,
+    });
+  } catch (err) {
+    res.status(err.code || 400).json({ message: err.message });
   }
 };
 
@@ -113,4 +137,6 @@ module.exports = {
   uploadCoverPhoto,
   requestVerifyUser,
   verifyUserToken,
+  deleteUserbyAdmin,
+  changeUserRoleByAdmin,
 };

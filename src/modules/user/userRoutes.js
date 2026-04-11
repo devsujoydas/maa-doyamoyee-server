@@ -29,15 +29,29 @@ router.put("/profile", isVerifyUser, updateProfile);
 router.delete("/profile", isVerifyUser, deleteProfile);
 
 // Verify
-router.post("/request",isVerifyUser, requestVerifyUser);
-router.get("/verify",isVerifyUser, verifyUserToken);
+router.post("/request", isVerifyUser, requestVerifyUser);
+router.get("/verify", isVerifyUser, verifyUserToken);
 
 // Images
-router.put( "/profile-photo", isVerifyUser, upload.single("image"), uploadProfilePhoto );
-router.put( "/cover-photo", isVerifyUser, upload.single("image"), uploadCoverPhoto );
+router.put(
+  "/profile-photo",
+  isVerifyUser,
+  upload.single("image"),
+  uploadProfilePhoto,
+);
+router.put(
+  "/cover-photo",
+  isVerifyUser,
+  upload.single("image"),
+  uploadCoverPhoto,
+);
 
 // USER delete by admin
-router.delete("/user/:userId",authorizeRoles("admin", "moderator"),deleteUserbyAdmin);
-router.patch("/:userId/role",authorizeRoles("admin"),changeUserRoleByAdmin);
+router.delete(
+  "/user/:userId",
+  authorizeRoles("admin", "moderator"),
+  deleteUserbyAdmin,
+);
+router.patch("/:userId/role", authorizeRoles("admin"), changeUserRoleByAdmin);
 
 module.exports = router;

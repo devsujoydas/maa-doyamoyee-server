@@ -3,58 +3,53 @@ const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const connectDB = require("./src/configs/db");
-const { PORT } = require("./src/configs/config");
 const allRoutes = require("./app");
 
 const app = express();
-const port = PORT || process.env.PORT;
 
 app.use(express.json());
 app.use(cookieParser());
 
-// -----------------------------
-// DATABASE CONNECTION
-// -----------------------------
-connectDB();
-
-// -----------------------------
-// CORS CONFIG
-// -----------------------------
 app.use(
   cors({
-    origin: ["http://localhost:5173", "https://maa-doyamoyee.vercel.app/"],
+    origin: ["http://localhost:5173", "https://maa-doyamoyee.vercel.app"],
     credentials: true,
   }),
 );
 
 // -----------------------------
-// TEST ROUTE
+// SAFE DB CONNECT (IMPORTANT)
 // -----------------------------
+let isConnected = false;
+
+const dbConnect = async () => {
+  if (!isConnected) {
+    await connectDB();
+    isConnected = true;
+  }
+};
+
+// middleware: every request ensures DB
+app.use(async (req, res, next) => {
+  try {
+    await dbConnect();
+    next();
+  } catch (err) {
+    console.log("DB ERROR:", err);
+    res.status(500).json({ message: "DB connection failed" });
+  }
+});
+
+// routes
 app.get("/", (req, res) =>
   res.send("Maa Doyamoyee Connected With Server & MongoDB"),
 );
 
-// -----------------------------
-// API ROUTES
-// -----------------------------
 app.use("/api/v1", allRoutes);
 
-// =====================================================
-// ❌ VERCEL FIX (DO NOT USE app.listen in serverless)
-// =====================================================
-
-// app.listen(port, () => {
-//   console.log(`Mongoose Server running on port ${port}`);
+//  NO app.listen in Vercel
+// app.listen(5000, () => {
+//   console.log(`Mongoose Server running on port 5000`);
 // });
-
-// =====================================================
-// 🔥 LOCAL DEVELOPMENT ONLY (UNCOMMENT WHEN NEEDED)
-// =====================================================
-
-// if (process.env.NODE_ENV !== "production") {
-//   app.listen(port, () => {
-//     console.log(`Mongoose Server running on port ${port}`);
-//   });
-// }
 
 module.exports = app;

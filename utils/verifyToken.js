@@ -1,6 +1,5 @@
 const jwt = require("jsonwebtoken");
-const User = require("../src/modules/user/userModel");
-const { JWT_SECRET } = require("../src/configs/config");
+const User = require("../src/modules/user/userModel"); 
 
 const verifyToken = async (req) => {
   const authHeader = req.headers.authorization;
@@ -14,7 +13,7 @@ const verifyToken = async (req) => {
   try {
     const token = authHeader.split(" ")[1];
 
-    const decodedToken = jwt.verify(token, JWT_SECRET);
+    const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
 
     // 🔥 IMPORTANT: include role
     const user = await User.findById(decodedToken.id).select(

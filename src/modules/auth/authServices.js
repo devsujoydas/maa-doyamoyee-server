@@ -1,7 +1,6 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken"); 
-const User = require("../user/userModel");
-const { JWT_SECRET,FRONTEND_URL, ACCESS_TOKEN_EXPIRESIN } = require("../../configs/config");  
+const User = require("../user/userModel"); 
 const createTokens = require("../../../utils/createTokens");
 const verifyEmailTemplate = require("../../../utils/emailTemplates/verifyEmailTemplate");
 const sendEmail = require("../../../utils/sendEmail");
@@ -78,15 +77,15 @@ const refreshAccessTokenService = (req, res) => {
     return res.status(400).json({ message: "No refresh token found" });
   }
 
-  jwt.verify(refreshToken, JWT_SECRET, (err, decoded) => {
+  jwt.verify(refreshToken, process.env.JWT_SECRET, (err, decoded) => {
     if (err) {
       return res.status(403).json({ message: "Invalid refresh token" });
     }
 
     const newAccessToken = jwt.sign(
       { id: decoded.id, email: decoded.email, role: decoded.role ,isVerified: decoded.isVerified},
-      JWT_SECRET,
-      { expiresIn: `${ACCESS_TOKEN_EXPIRESIN}` },
+      process.env.JWT_SECRET,
+      { expiresIn: `${process.env.ACCESS_TOKEN_EXPIRESIN}` },
     );
     return res.status(200).json({ accessToken: newAccessToken });
   });
@@ -101,11 +100,11 @@ const sendVerificationEmailService = async (userId) => {
 
   if (user.isVerified) return "Email already verified";
 
-  const token = jwt.sign({ id: user._id, type: "verify" }, JWT_SECRET, {
+  const token = jwt.sign({ id: user._id, type: "verify" }, process.env.JWT_SECRET, {
     expiresIn: "10m",
   });
 
-  const verifyUrl = `${FRONTEND_URL}/profile?token=${token}`;
+  const verifyUrl = `${process.env.FRONTEND_URL}/profile?token=${token}`;
 
   await sendEmail(user.email, "Verify Your Email", verifyEmailTemplate(verifyUrl));
 
@@ -117,7 +116,7 @@ const verifyEmailService = async (token) => {
 
   let decoded;
   try {
-    decoded = jwt.verify(token, JWT_SECRET);
+    decoded = jwt.verify(token, process.env.JWT_SECRET);
   } catch {
     throw new Error("INVALID_OR_EXPIRED_TOKEN");
   }

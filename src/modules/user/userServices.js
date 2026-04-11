@@ -8,8 +8,8 @@ const {
 
 const jwt = require("jsonwebtoken");
 const sendEmail = require("../../../utils/sendEmail");
-const verifyEmailTemplate = require("../../../utils/emailTemplates/verifyEmailTemplate");
-const { FRONTEND_URL, JWT_SECRET } = require("../../configs/config");
+const verifyEmailTemplate = require("../../../utils/emailTemplates/verifyEmailTemplate");  
+
 
 // ---------------- BASIC ----------------
 const getUsersService = async (query) => {
@@ -143,11 +143,11 @@ const requestVerifyUserService = async (email) => {
   const user = await User.findOne({ email });
   if (!user) return "Verification email sent";
 
-  const token = jwt.sign({ id: user._id }, JWT_SECRET, {
+  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
     expiresIn: "1d",
   });
 
-  const link = `${FRONTEND_URL}/profile?token=${token}`;
+  const link = `${process.env.FRONTEND_URL}/profile?token=${token}`;
 
   await sendEmail(email, "Verify Email", verifyEmailTemplate(link));
 
@@ -155,7 +155,7 @@ const requestVerifyUserService = async (email) => {
 };
 
 const verifyUserTokenService = async (token) => {
-  const decoded = jwt.verify(token, JWT_SECRET);
+  const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
   const user = await User.findById(decoded.id);
   if (!user) throw new Error("USER_NOT_FOUND");

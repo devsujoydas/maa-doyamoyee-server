@@ -1,7 +1,6 @@
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
-const User = require("../user/userModel");
-const { FRONTEND_URL, JWT_SECRET } = require("../../configs/config");
+const User = require("../user/userModel");  
 const sendEmail = require("../../../utils/sendEmail");
 const passwordResetTemplate = require("../../../utils/emailTemplates/passwordResetTemplate");
 const verifyPassResetToken = require("../../../utils/verifyPassResetToken");
@@ -15,11 +14,11 @@ const requestPasswordResetService = async (email) => {
     return "If an account exists, a reset link has been sent.";
   }
 
-  const token = jwt.sign({ id: user._id, type: "reset" }, JWT_SECRET, {
+  const token = jwt.sign({ id: user._id, type: "reset" }, process.env.JWT_SECRET, {
     expiresIn: "15m",
   });
 
-  const resetUrl = `${FRONTEND_URL}/reset-password?token=${token}`;
+  const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
 
   await sendEmail(
     email,

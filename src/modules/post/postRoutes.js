@@ -23,14 +23,13 @@ router.get("/", getPosts);
 router.get("/:postId", getPost);
 router.patch("/:postId/react", isVerifyUser, toggleReact);
 
-router.post("/", authorizeRoles("admin"), upload.single("image"), createPost);
-router.put("/:postId", authorizeRoles("admin"), upload.single("image"), updatePost);
-router.delete("/:postId", authorizeRoles("admin"), deletePost);
+router.post("/", authorizeRoles("ceo"), upload.single("image"), createPost);
+router.put("/:postId", authorizeRoles("ceo"), upload.single("image"), updatePost);
+router.delete("/:postId", authorizeRoles("ceo"), deletePost);
 
 
 
-// admin access
-router.put("/post/:postId/status", authorizeRoles("admin"), updatePostStatus);
+router.put("/post/:postId/status", authorizeRoles("ceo"), updatePostStatus);
 
 
 

@@ -14,10 +14,10 @@ const authorizeRoles = require("../../middlewares/authorizeRoles");
 
 router.get("/", getNotices);
 router.get("/:id", getNotice);
-router.post("/", authorizeRoles("admin"), createNotice);
-router.put("/:id", authorizeRoles("admin"), updateNotice);
-router.delete("/:id", authorizeRoles("admin"), deleteNotice);
-router.patch("/:id/toggle-pin", authorizeRoles("admin"), togglePin);
-router.patch("/:id/toggle-status", authorizeRoles("admin"), toggleStatus);
+router.post("/", authorizeRoles("ceo"), createNotice);
+router.put("/:id", authorizeRoles("ceo"), updateNotice);
+router.delete("/:id", authorizeRoles("ceo"), deleteNotice);
+router.patch("/:id/toggle-pin", authorizeRoles("ceo"), togglePin);
+router.patch("/:id/toggle-status", authorizeRoles("ceo"), toggleStatus);
 
 module.exports = router;

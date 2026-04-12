@@ -18,12 +18,12 @@ router.get("/", getAllGallery);
 router.get("/:id", getGalleryById);
 
 // CREATE
-router.post("/",authorizeRoles("admin", "ceo"), upload.single("image"), createGallery);
+router.post("/",authorizeRoles("ceo"), upload.single("image"), createGallery);
 
 // UPDATE
-router.put("/:id",authorizeRoles("admin", "ceo"), upload.single("image"), updateGallery);
+router.put("/:id",authorizeRoles("ceo"), upload.single("image"), updateGallery);
 
 // DELETE
-router.delete("/:id",authorizeRoles("admin", "ceo"), deleteGallery);
+router.delete("/:id",authorizeRoles("ceo"), deleteGallery);
 
 module.exports = router;

@@ -17,10 +17,7 @@ const GallerySchema = new mongoose.Schema(
     isFeatured: { type: Boolean, default: false },
     uploadedAt: { type: Date, default: Date.now },
 
-    // SEO
-    altText: { type: String, trim: true },
-    metaTitle: { type: String, trim: true },
-    metaDescription: { type: String, trim: true },
+    altText: { type: String, trim: true }, 
   },
   { timestamps: true }
 );

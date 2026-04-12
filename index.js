@@ -14,6 +14,7 @@ const eventRoutes = require("./src/modules/event/eventRoutes");
 const messageRoutes = require("./src/modules/message/messageRoutes");
 const galleryRoutes = require("./src/modules/gallery/galleryRoutes");
 const donationRoutes = require("./src/modules/donation/donationRoutes");
+const generateSitemap = require("./utils/generateSitemap");
 
 const app = express();
 
@@ -27,10 +28,11 @@ app.use(
   cors({
     origin: [
       "https://maa-doyamoyee.vercel.app",
+      "https://www.maa-doyamoyee.com",
       "http://localhost:5173",
     ],
     credentials: true,
-  })
+  }),
 );
 
 /* =========================
@@ -48,6 +50,7 @@ connectDB().catch((err) => {
 app.get("/", (req, res) => {
   res.send("Maa Doyamoyee Server & MongoDB Connected 🚀");
 });
+app.get("/sitemap.xml", generateSitemap);
 
 /* =========================
    API ROUTES
@@ -66,8 +69,8 @@ app.use("/api/v1/donation", donationRoutes);
    EXPORT FOR VERCEL
 ========================= */
 //  NO app.listen in Vercel
-// app.listen(5000, () => {
-//   console.log(`Mongoose Server running on port 5000`);
-// });
+app.listen(5000, () => {
+  console.log(`Mongoose Server running on port 5000`);
+});
 
 module.exports = app;

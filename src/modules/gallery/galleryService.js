@@ -4,13 +4,22 @@ const {
   deleteImageFromCloudinary,
 } = require("../../../utils/uploadService");
 
+const generateSEO = (title, description) => {
+  const keywords = [
+    "Shri Shri Ri Doyamoyee Temple",
+    "শ্রী শ্রীঁ রী দয়াময়ী মন্দির",
+    "Doyamoyee Temple",
+    "Hindu Temple Bangladesh",
+  ];
 
+  const picked = keywords.slice(0, 2);
 
-const generateSEO = (title, description) => ({
-  altText: title,
-  metaTitle: title,
-  metaDescription: description ? description.substring(0, 160) : title,
-});
+  return {
+    altText: description
+      ? `${title} - ${description.split("।")[0]}`
+      : `${title} - ${picked.join(", ")}`,
+  };
+};
 
 const createGalleryService = async ({
   fileBuffer,

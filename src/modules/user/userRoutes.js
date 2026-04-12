@@ -20,7 +20,7 @@ const {
 const authorizeRoles = require("../../middlewares/authorizeRoles");
 
 // Public
-router.get("/", authorizeRoles("admin", "moderator"), getUsers);
+router.get("/", authorizeRoles("admin", "ceo"), getUsers);
 router.get("/profile/:userId", getUsersProfile);
 
 // Private
@@ -49,9 +49,13 @@ router.put(
 // USER delete by admin
 router.delete(
   "/user/:userId",
-  authorizeRoles("admin", "moderator"),
+  authorizeRoles("admin", "ceo"),
   deleteUserbyAdmin,
 );
-router.patch("/:userId/role", authorizeRoles("admin"), changeUserRoleByAdmin);
+router.patch(
+  "/:userId/role",
+  authorizeRoles("admin", "ceo"),
+  changeUserRoleByAdmin,
+);
 
 module.exports = router;

@@ -17,10 +17,10 @@ router.get("/", getEvents);
 router.get("/:id", getEvent);
 
 // CREATE
-router.post("/", authorizeRoles("admin", "moderator"), upload.single("image"), createEvent);
+router.post("/", authorizeRoles("admin", "ceo"), upload.single("image"), createEvent);
 // UPDATE
-router.put("/:id", authorizeRoles("admin", "moderator"), upload.single("image"), updateEvent); 
+router.put("/:id", authorizeRoles("admin", "ceo"), upload.single("image"), updateEvent); 
 // DELETE
-router.delete("/:id", authorizeRoles("admin", "moderator"), deleteEvent);
+router.delete("/:id", authorizeRoles("admin", "ceo"), deleteEvent);
 
 module.exports = router;

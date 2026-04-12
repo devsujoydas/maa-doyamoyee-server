@@ -12,9 +12,9 @@ const authorizeRoles = require("../../middlewares/authorizeRoles");
 
 
 router.post("/", upload.single("paymentProof"), createDonation);
-router.get("/", getAllDonations);
+router.get("/",authorizeRoles("admin", "ceo"), getAllDonations);
 
-router.delete("/:id",authorizeRoles("admin", "moderator"), deleteDonation);
-router.patch("/:id/status",authorizeRoles("admin", "moderator"), updateDonationStatus);
+router.delete("/:id",authorizeRoles("admin", "ceo"), deleteDonation);
+router.patch("/:id/status",authorizeRoles("admin", "ceo"), updateDonationStatus);
 
 module.exports = router;

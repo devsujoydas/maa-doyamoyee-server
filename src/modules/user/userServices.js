@@ -8,15 +8,16 @@ const {
 
 const jwt = require("jsonwebtoken");
 const sendEmail = require("../../../utils/sendEmail");
-const verifyEmailTemplate = require("../../../utils/emailTemplates/verifyEmailTemplate");  
-
+const verifyEmailTemplate = require("../../../utils/emailTemplates/verifyEmailTemplate");
+const deleteUserAssets = require("../../../utils/deleteUserAssets");
 
 // ---------------- BASIC ----------------
-const getUsersService = async (query) => {
-  const { search, role } = query;
+const getUsersService = async (req) => {
+  const { search, role } = req.query;
 
   const filter = {};
 
+  // 🔍 Search
   if (search) {
     filter.$or = [
       { name: new RegExp(search, "i") },
@@ -25,7 +26,18 @@ const getUsersService = async (query) => {
     ];
   }
 
-  if (role) filter.role = role;
+  // 🔐 Role restriction
+  if (req.user.role === "admin") {
+    filter.role = { $ne: "ceo" };
+  }
+
+  // 🎯 Role filter (only if allowed)
+  if (role) {
+    if (req.user.role === "admin" && role === "ceo") {
+      throw new Error("Forbidden"); // extra protection
+    }
+    filter.role = role;
+  }
 
   return await User.find(filter).select("-password -refreshToken");
 };
@@ -122,19 +134,38 @@ const deleteProfileService = async (id) => {
   const user = await User.findById(id);
   if (!user) throw new Error("USER_NOT_FOUND");
 
-  if (user.profileImage?.publicId) {
-    await deleteImageFromCloudinary(user.profileImage.publicId);
-  }
+ 
+  await deleteUserAssets(user);
 
-  if (user.coverImage?.publicId) {
-    await deleteImageFromCloudinary(user.coverImage.publicId);
-  }
+  await Promise.all([
+    Post.deleteMany({ author: id }),
+    Comment.deleteMany({ author: id }),
+  ]);
 
-  await User.deleteOne({ _id: id });
-  await Post.deleteMany({ author: id });
-  await Comment.deleteMany({ author: id });
+  await User.findByIdAndDelete(id);
 
-  return { success: true };
+  return {
+    success: true,
+    message: "Profile deleted successfully",
+  };
+};
+
+const deleteUserbyAdminService = async (id) => {
+  const user = await User.findById(id);
+  if (!user) throw new Error("USER_NOT_FOUND");
+
+  await deleteUserAssets(user);
+
+  await Promise.all([
+    Post.deleteMany({ author: id }),
+    Comment.deleteMany({ author: id }),
+    User.deleteOne({ _id: id }),
+  ]);
+
+  return {
+    success: true,
+    message: "User deleted successfully",
+  };
 };
 
 const requestVerifyUserService = async (email) => {
@@ -166,32 +197,18 @@ const verifyUserTokenService = async (token) => {
   return "Email verified";
 };
 
-const deleteUserbyAdminService = async (id) => {
-  const user = await User.findById(id);
-  if (!user) throw new Error("USER_NOT_FOUND");
-
-  if (user.profileImage?.publicId) {
-    await deleteImageFromCloudinary(user.profileImage.publicId);
-  }
-
-  if (user.coverImage?.publicId) {
-    await deleteImageFromCloudinary(user.coverImage.publicId);
-  }
-
-  await User.deleteOne({ _id: id });
-  await Post.deleteMany({ author: id });
-  await Comment.deleteMany({ author: id });
-
-  return {
-    message: "User deleted successfully",
-  };
-};
-
-const changeUserRoleByAdminService = async (userId, newRole) => {
-  const validRoles = ["admin", "moderator", "user"];
+const changeUserRoleByAdminService = async (req, userId, newRole) => {
+  const validRoles = ["admin", "ceo", "user"];
 
   if (!validRoles.includes(newRole)) {
     throw { message: "INVALID_ROLE", code: 400 };
+  }
+
+  const currentUser = req.user;
+
+  // ❌ user cannot change role
+  if (currentUser.role === "user") {
+    throw { message: "FORBIDDEN", code: 403 };
   }
 
   const user = await User.findById(userId);
@@ -202,6 +219,11 @@ const changeUserRoleByAdminService = async (userId, newRole) => {
   // ❗ same role হলে update না করা
   if (previousRole === newRole) {
     throw { message: "USER_ALREADY_HAS_THIS_ROLE", code: 400 };
+  }
+
+  // ❌ admin cannot assign CEO role
+  if (currentUser.role === "admin" && newRole === "ceo") {
+    throw { message: "ADMIN_CANNOT_ASSIGN_CEO", code: 403 };
   }
 
   user.role = newRole;

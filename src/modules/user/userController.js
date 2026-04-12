@@ -14,7 +14,7 @@ const {
 // ---------------- BASIC ----------------
 const getUsers = async (req, res) => {
   try {
-    const data = await getUsersService(req.query);
+    const data = await getUsersService(req);
     res.json(data);
   } catch (err) {
     res.status(500).json({ message: "Server error" });
@@ -117,7 +117,7 @@ const changeUserRoleByAdmin = async (req, res) => {
   try {
     const { role } = req.body;
     const userId = req.params.userId;
-    const user = await changeUserRoleByAdminService(userId, role);
+    const user = await changeUserRoleByAdminService(req, userId, role);
     res.status(200).json({
       message: `Role changed from ${user.previousRole} to ${user.role}`,
       user,

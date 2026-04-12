@@ -15,12 +15,12 @@ const authorizeRoles = require("../../middlewares/authorizeRoles");
 router.post("/", createMessage);
 
 // ADMIN
-router.get("/", authorizeRoles("admin", "moderator"), getMessages);
-router.delete("/:id", authorizeRoles("admin", "moderator"), deleteMessage);
+router.get("/", authorizeRoles("admin", "ceo"), getMessages);
+router.delete("/:id", authorizeRoles("admin", "ceo"), deleteMessage);
 
-router.patch("/:id/read", authorizeRoles("admin", "moderator"), markRead);
-router.patch("/:id/unread", authorizeRoles("admin", "moderator"), markUnread);
+router.patch("/:id/read", authorizeRoles("admin", "ceo"), markRead);
+router.patch("/:id/unread", authorizeRoles("admin", "ceo"), markUnread);
 
-router.post("/:id/reply", authorizeRoles("admin", "moderator"), sendReply);
+router.post("/:id/reply", authorizeRoles("admin", "ceo"), sendReply);
 
 module.exports = router;

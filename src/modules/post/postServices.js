@@ -134,6 +134,25 @@ const deletePostService = async (user, postId) => {
 };
 
 // ---------------- COMMENTS ----------------
+const getAllCommentsService = async (query) => {
+  const { search = "" } = query;
+
+  let filter = {};
+
+  // 🔍 Search
+  if (search) {
+    filter.$or = [
+      { message: { $regex: search, $options: "i" } },
+      { name: { $regex: search, $options: "i" } },
+      { email: { $regex: search, $options: "i" } },
+    ];
+  }
+
+  return await Comment.find(filter)
+    .populate("author", "name username profileImage")
+    .sort({ createdAt: -1 });
+};
+
 const getCommentsService = async (postId) => {
   return await Comment.find({ post: postId })
     .populate("author", "name username profileImage")
@@ -143,14 +162,12 @@ const getCommentsService = async (postId) => {
 const createCommentService = async (userId, postId, text) => {
   if (!text) throw new Error("TEXT_REQUIRED");
 
-  // 1️⃣ create comment
   const comment = await Comment.create({
     text,
     author: userId,
     post: postId,
   });
 
-  // 2️⃣ populate author
   const populatedComment = await Comment.findById(comment._id).populate(
     "author",
     "name username profileImage",
@@ -170,25 +187,28 @@ const updateCommentService = async (user, commentId, text) => {
   comment.text = text || comment.text;
   await comment.save();
 
-  // populate author before return
   await comment.populate("author", "name username profileImage");
 
   return comment;
 };
 
-
 const deleteCommentService = async (user, commentId) => {
-  const comment = await Comment.findById(commentId);
-  if (!comment) throw new Error("COMMENT_NOT_FOUND");
-
-  if (!comment.author.equals(user.id) && user.role !== "admin") {
-    throw new Error("UNAUTHORIZED");
+  let filter = { _id: commentId };
+ 
+  if (user.role !== "admin") {
+    filter.author = user.id;
   }
 
-  await comment.deleteOne();
-  return { message: "Comment deleted" };
-};
+  const deletedComment = await Comment.findOneAndDelete(filter);
 
+  if (!deletedComment) {
+    throw new Error("COMMENT_NOT_FOUND_OR_UNAUTHORIZED");
+  }
+
+  return {
+    message: "Comment deleted successfully",
+  };
+};
 
 // ---------------- REACT ----------------
 const toggleReactService = async (userId, postId) => {
@@ -230,4 +250,5 @@ module.exports = {
   deleteCommentService,
   toggleReactService,
   updatePostStatusService,
+  getAllCommentsService,
 };

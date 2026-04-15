@@ -10,6 +10,7 @@ const {
   deleteCommentService,
   toggleReactService,
   updatePostStatusService,
+  getAllCommentsService,
 } = require("./postServices");
 
 // POSTS
@@ -67,6 +68,16 @@ const deletePost = async (req, res) => {
 
 
 // COMMENTS
+const getAllComments = async (req, res) => {
+  try {
+    const data = await getAllCommentsService();
+    res.json(data);
+  } catch (err) {
+    res.status(404).json({ message: err.message });
+  }
+};
+
+
 const getComments = async (req, res) => {
   try {
     const data = await getCommentsService(req.params.postId);
@@ -144,6 +155,7 @@ module.exports = {
   updatePost,
   deletePost,
   getComments,
+  getAllComments,
   createComment,
   updateComment,
   deleteComment,

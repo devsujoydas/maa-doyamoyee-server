@@ -12,6 +12,7 @@ const {
   deleteComment,
   toggleReact,
   updatePostStatus,
+  getAllComments,
 } = require("./postController");
 
 const isVerifyUser = require("../../middlewares/verifyUser");
@@ -24,21 +25,22 @@ router.get("/:postId", getPost);
 router.patch("/:postId/react", isVerifyUser, toggleReact);
 
 router.post("/", authorizeRoles("ceo"), upload.single("image"), createPost);
-router.put("/:postId", authorizeRoles("ceo"), upload.single("image"), updatePost);
+router.put(
+  "/:postId",
+  authorizeRoles("ceo"),
+  upload.single("image"),
+  updatePost,
+);
 router.delete("/:postId", authorizeRoles("ceo"), deletePost);
-
-
 
 router.put("/post/:postId/status", authorizeRoles("ceo"), updatePostStatus);
 
-
-
-
 // COMMENTS
 router.get("/:postId/comments", getComments);
-
 router.post("/:postId/comments", isVerifyUser, createComment);
 router.put("/:postId/comments/:commentId", isVerifyUser, updateComment);
 router.delete("/:postId/comments/:commentId", isVerifyUser, deleteComment);
+
+router.get("/comments", authorizeRoles("ceo,admin"), getAllComments);
 
 module.exports = router;

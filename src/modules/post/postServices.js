@@ -133,25 +133,6 @@ const deletePostService = async (user, postId) => {
   return { message: "Post deleted" };
 };
 
-// ---------------- COMMENTS ----------------
-const getAllCommentsService = async (query) => {
-  const { search = "" } = query;
-
-  let filter = {};
-
-  // 🔍 Search
-  if (search) {
-    filter.$or = [
-      { message: { $regex: search, $options: "i" } },
-      { name: { $regex: search, $options: "i" } },
-      { email: { $regex: search, $options: "i" } },
-    ];
-  }
-
-  return await Comment.find(filter)
-    .populate("author", "name username profileImage")
-    .sort({ createdAt: -1 });
-};
 
 const getCommentsService = async (postId) => {
   return await Comment.find({ post: postId })
@@ -237,6 +218,32 @@ const updatePostStatusService = async (postId, status) => {
 
   return post;
 };
+
+
+
+
+// ---------------- COMMENTS ----------------
+const getAllCommentsService = async (query) => {
+  const { search = "" } = query;
+
+  let filter = {};
+
+  // 🔍 Search
+  if (search) {
+    filter.$or = [
+      { message: { $regex: search, $options: "i" } },
+      { name: { $regex: search, $options: "i" } },
+      { email: { $regex: search, $options: "i" } },
+    ];
+  }
+
+
+  return await Comment.find(filter)
+    .populate("author", "name username profileImage")
+    .sort({ createdAt: -1 });
+};
+
+
 
 module.exports = {
   getPostsService,

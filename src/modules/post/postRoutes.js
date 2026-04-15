@@ -41,6 +41,6 @@ router.post("/:postId/comments", isVerifyUser, createComment);
 router.put("/:postId/comments/:commentId", isVerifyUser, updateComment);
 router.delete("/:postId/comments/:commentId", isVerifyUser, deleteComment);
 
-router.get("/comments", authorizeRoles("ceo,admin"), getAllComments);
+router.get("/admin/allcomments", getAllComments);
 
 module.exports = router;

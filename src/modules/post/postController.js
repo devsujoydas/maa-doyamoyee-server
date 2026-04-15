@@ -70,7 +70,7 @@ const deletePost = async (req, res) => {
 // COMMENTS
 const getAllComments = async (req, res) => {
   try {
-    const data = await getAllCommentsService();
+    const data = await getAllCommentsService(req.query);
     res.json(data);
   } catch (err) {
     res.status(404).json({ message: err.message });

@@ -27,11 +27,10 @@ app.use(cookieParser());
 app.use(
   cors({
     origin: [
-      "https://maa-doyamoyee.vercel.app",
+      "https://maa-doyamoyee.com",
       "https://www.maa-doyamoyee.com",
+      "https://maa-doyamoyee.vercel.app", 
       "http://localhost:5173",
-      "http://localhost:5174",
-      "http://localhost:5175",
     ],
     credentials: true,
   }),

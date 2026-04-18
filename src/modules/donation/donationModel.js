@@ -1,14 +1,16 @@
 const mongoose = require("mongoose");
 
+/**
+ * BANK PAYMENT (SIMPLIFIED)
+ */
 const BankPaymentSchema = new mongoose.Schema({
   accountNumber: { type: String, required: true },
   bankName: { type: String, required: true },
-  branchName: { type: String, required: true },
-  branchCode: { type: String, required: true },
-  swiftCode: { type: String },
-  routingNumber: { type: String },
 });
 
+/**
+ * MOBILE PAYMENT
+ */
 const MobilePaymentSchema = new mongoose.Schema({
   provider: {
     type: String,
@@ -19,18 +21,33 @@ const MobilePaymentSchema = new mongoose.Schema({
   transactionId: { type: String, required: true },
 });
 
+/**
+ * PAYMENT PROOF (image upload)
+ */
 const PaymentProofSchema = new mongoose.Schema({
   url: String,
   publicId: String,
 });
 
+/**
+ * MAIN DONATION SCHEMA
+ */
 const DonationSchema = new mongoose.Schema(
   {
     accountName: { type: String, required: true },
     email: { type: String, required: true },
     phone: { type: String, required: true },
-    paymentAmount: { type: Number, required: true },
-    message: String,
+
+    paymentAmount: {
+      type: Number,
+      required: true,
+      min: 1,
+    },
+
+    message: {
+      type: String,
+      default: "",
+    },
 
     paymentMethod: {
       type: String,

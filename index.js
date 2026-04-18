@@ -29,7 +29,6 @@ app.use(
     origin: [
       "https://maa-doyamoyee.com",
       "https://www.maa-doyamoyee.com",
-      "https://maa-doyamoyee.vercel.app", 
       "http://localhost:5173",
     ],
     credentials: true,

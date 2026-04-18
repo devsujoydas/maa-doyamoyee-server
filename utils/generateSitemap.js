@@ -2,12 +2,12 @@ const axios = require("axios");
 
 const generateSitemap = async (req, res) => {
   try {
-    const baseUrl = "https://maa-doyamoyee.vercel.app";
+    const baseUrl = "https://maa-doyamoyee.com";
 
     // ⚡ Fast parallel fetch
     const [postsRes, eventsRes] = await Promise.all([
-      axios.get("https://maa-doyamoyee-server.vercel.app/api/v1/posts"),
-      axios.get("https://maa-doyamoyee-server.vercel.app/api/v1/events"),
+      axios.get("https://api.maa-doyamoyee.com/api/v1/posts"),
+      axios.get("https://api.maa-doyamoyee.com/api/v1/events"),
     ]);
 
     // ✅ Safe data extraction

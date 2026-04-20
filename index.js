@@ -48,9 +48,6 @@ connectDB().catch((err) => {
 /* =========================
    TEST ROUTE
 ========================= */
-app.get("/", (req, res) => {
-  res.send("Maa Doyamoyee Server & MongoDB Connected 🚀");
-});
 
 app.get("/sitemap.xml", generateSitemap);
 

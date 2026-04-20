@@ -1,6 +1,6 @@
 const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken"); 
-const User = require("../user/userModel"); 
+const jwt = require("jsonwebtoken");
+const User = require("../user/userModel");
 const createTokens = require("../../../utils/createTokens");
 const verifyEmailTemplate = require("../../../utils/emailTemplates/verifyEmailTemplate");
 const sendEmail = require("../../../utils/sendEmail");
@@ -9,23 +9,22 @@ const signUpUserService = async (req, res) => {
   const { name, email, phone, password } = req.body;
 
   const exists = await User.findOne({ email });
-  if (exists) {
-    throw new Error("USER_ALREADY_EXIST");
-  }
+  if (exists) throw new Error("USER_ALREADY_EXIST");
 
   const hashedPassword = await bcrypt.hash(password, 10);
+
+  const username = email.split("@")[0].split("+")[0];
 
   const user = await User.create({
     name,
     email,
     phone,
-    password: hashedPassword, 
+    password: hashedPassword,
+    username, // ✅ add this
   });
 
-  const username = email.split("@")[0].split("+")[0];
   const { accessToken, refreshToken } = createTokens(res, user);
 
-  user.username = username;
   user.refreshToken = refreshToken;
   await user.save();
 
@@ -83,14 +82,18 @@ const refreshAccessTokenService = (req, res) => {
     }
 
     const newAccessToken = jwt.sign(
-      { id: decoded.id, email: decoded.email, role: decoded.role ,isVerified: decoded.isVerified},
+      {
+        id: decoded.id,
+        email: decoded.email,
+        role: decoded.role,
+        isVerified: decoded.isVerified,
+      },
       process.env.JWT_SECRET,
       { expiresIn: `${process.env.ACCESS_TOKEN_EXPIRESIN}` },
     );
     return res.status(200).json({ accessToken: newAccessToken });
   });
 };
-
 
 const sendVerificationEmailService = async (userId) => {
   if (!userId) throw new Error("USER_NOT_FOUND");
@@ -100,17 +103,25 @@ const sendVerificationEmailService = async (userId) => {
 
   if (user.isVerified) return "Email already verified";
 
-  const token = jwt.sign({ id: user._id, type: "verify" }, process.env.JWT_SECRET, {
-    expiresIn: "10m",
-  });
+  const token = jwt.sign(
+    { id: user._id, type: "verify" },
+    process.env.JWT_SECRET,
+    {
+      expiresIn: "10m",
+    },
+  );
 
   const verifyUrl = `${process.env.FRONTEND_URL}/profile?token=${token}`;
 
-  await sendEmail(user.email, "Verify Your Email", verifyEmailTemplate(verifyUrl));
+  await sendEmail(
+    user.email,
+    "Verify Your Email",
+    verifyEmailTemplate(verifyUrl),
+  );
 
   return "Verification email sent";
 };
- 
+
 const verifyEmailService = async (token) => {
   if (!token) throw new Error("TOKEN_REQUIRED");
 

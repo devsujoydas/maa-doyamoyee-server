@@ -79,7 +79,7 @@ const refreshAccessTokenService = (req, res) => {
   jwt.verify(refreshToken, process.env.JWT_SECRET, (err, decoded) => {
     if (err) {
       return res.status(403).json({ message: "Invalid refresh token" });
-    }
+    } 
 
     const newAccessToken = jwt.sign(
       {

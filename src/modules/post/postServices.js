@@ -212,7 +212,7 @@ const toggleReactService = async (userId, postId) => {
 const updatePostStatusService = async (postId, status) => {
   const post = await Post.findById(postId);
   if (!post) throw new Error("POST_NOT_FOUND");
-
+  
   post.status = status;
   await post.save();
 

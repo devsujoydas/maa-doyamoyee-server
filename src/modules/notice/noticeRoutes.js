@@ -17,7 +17,7 @@ router.get("/:id", getNotice);
 router.post("/", authorizeRoles("ceo"), createNotice);
 router.put("/:id", authorizeRoles("ceo"), updateNotice);
 router.delete("/:id", authorizeRoles("ceo"), deleteNotice);
-router.patch("/:id/toggle-pin", authorizeRoles("ceo"), togglePin);
-router.patch("/:id/toggle-status", authorizeRoles("ceo"), toggleStatus);
+router.patch("/:id/toggle-pin", authorizeRoles("admin", "ceo"), togglePin);
+router.patch("/:id/toggle-status", authorizeRoles("admin", "ceo"), toggleStatus);
 
 module.exports = router;

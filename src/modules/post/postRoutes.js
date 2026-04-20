@@ -31,9 +31,13 @@ router.put(
   upload.single("image"),
   updatePost,
 );
-router.delete("/:postId", authorizeRoles("ceo"), deletePost);
+router.delete("/:postId", authorizeRoles("admin", "ceo"), deletePost);
 
-router.put("/post/:postId/status", authorizeRoles("ceo"), updatePostStatus);
+router.put(
+  "/post/:postId/status",
+  authorizeRoles("admin", "ceo"),
+  updatePostStatus,
+);
 
 // COMMENTS
 router.get("/:postId/comments", getComments);
